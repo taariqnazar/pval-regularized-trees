@@ -2,5 +2,6 @@
 *
 # Except 
 !.gitignore
-!code/
+!code/*
+!*/
 !notes.tex
