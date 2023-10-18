@@ -476,15 +476,44 @@ In the special case where $\mu_A = (c, \dots, c)^T$ is constant, we get that $\x
 
 
 \paragraph{Hypothesis test}
+In practice, one would check the criterion we have mentioned above and decide if
+a split is good or bad. That is compare the $ MSEP_split $ to $ MSEP $ However,
+one should also account for randomness. Naturally, we
+should not accept the criterion based on the outcome of the criterion. Instead,
+in some sense, we would like to have some certainty or confidence in the
+outcome. Say, we want to be $ 95\% $ certain that the outcome of $ Z $ is not
+subject to a lot of noise. This naturally leads to hypothesis testing. We state a null-hypothesis as
+following:
+\begin{align*}
+	H_0: & \mu_A = \mu_B = \mu.
+\end{align*}
+The null-hypothesis states that there is no difference in the mean function in
+the two seperate regions. We then get that the distriubtion of $ Z $ under $ H_0
+$ call it $ Z_0 $ is distributed as
+\begin{align*}
+	Z \eqdis & \frac{\sigma^2}{n-1} \left(
+	\frac{2 n_B}{n_A -1} \chi^2_{n_A -1}
+	+ \frac{2 n_A}{n_B -1} \tilde \chi^2_{n_B -1}
+	- (n+1) \bar \chi_1^2
+	\right).
+\end{align*}
+In fact, given the null-hyptohesis $ H_0 $, the individual Chi-Squared random variables are
+centered as well. If the null-hypothesis is true we would expect the outcome of $ Z $ to be
+somewhere around $ 0 $. In contrast, if $ H_0 $ is untrue, then, we expect the
+outcome of $ Z $ to be very negative. If the out come of $ Z $ is realised in the $
+	p\%$ quantile of $ Z_0 $, we reject $ H_0 $ since the outcome is to extreme
+under $ H_0 $. Can we find an analytic quantile?
 
-To start off, we can look at creating a test for a single split. Since we have a
-distriution for the variable $ Z $, which is the difference between the msep
-after splitting $	MSEP_split $ and the msep without splitting $ MSEP $. We want to test that the
-difference between the msep esitmates is insignificant.
+\paragraph{Limiting distribution of Z}
+In the limit $ n_a, n_b \to \infty  $, we get that the eigenvalues of all tend
+to $ 0 $ except for $ \lambda_neg = -1 $ in this limiting case, the
+distribution for $ Z_\infty $ is
 
-We test $ Z $ under the null-hypothesis: $ H_0: \mu_A = \mu_B = \mu$. That is,
-there is no difference in the data between the two nodes.
+\begin{align*}
+	Z_\infty \eqdis -\sigma^2 \bar \chi_1^2
+\end{align*}
 
+Can we say something about this? Check that this is actually true.
 
 \subsection{Ratio distribution}
 Let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ and assume for the following that $H_0$ holds true. In order to find a statistic which does not depend on the unknown parameter $\sigma^2$, we would like to investigate the distribution of the ratio
