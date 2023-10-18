@@ -479,10 +479,12 @@ In the special case where $\mu_A = (c, \dots, c)^T$ is constant, we get that $\x
 
 To start off, we can look at creating a test for a single split. Since we have a
 distriution for the variable $ Z $, which is the difference between the msep
-after splitting $
-	MSEP_split $ and the msep without splitting $ MSEP $. We want to test that the
-difference between these is insignificant.. We want to test that the difference
-between these is insignificant. This can be see as something new
+after splitting $	MSEP_split $ and the msep without splitting $ MSEP $. We want to test that the
+difference between the msep esitmates is insignificant.
+
+We test $ Z $ under the null-hypothesis: $ H_0: \mu_A = \mu_B = \mu$. That is,
+there is no difference in the data between the two nodes.
+
 
 \subsection{Ratio distribution}
 Let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ and assume for the following that $H_0$ holds true. In order to find a statistic which does not depend on the unknown parameter $\sigma^2$, we would like to investigate the distribution of the ratio
