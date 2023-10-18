@@ -1,0 +1,6 @@
+# Ignore everythin
+*
+# Except 
+!.gitignore
+!code/
+!notes.tex
