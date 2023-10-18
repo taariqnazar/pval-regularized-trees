@@ -477,19 +477,19 @@ In the special case where $\mu_A = (c, \dots, c)^T$ is constant, we get that $\x
 
 \paragraph{Hypothesis test}
 In practice, one would check the criterion we have mentioned above and decide if
-a split is good or bad. That is compare the $ MSEP_split $ to $ MSEP $ However,
+a split is good or bad. That is, compare the msep after split to the msep without
+split. However,
 one should also account for randomness. Naturally, we
-should not accept the criterion based on the outcome of the criterion. Instead,
-in some sense, we would like to have some certainty or confidence in the
-outcome. Say, we want to be $ 95\% $ certain that the outcome of $ Z $ is not
-subject to a lot of noise. This naturally leads to hypothesis testing. We state a null-hypothesis as
-following:
+should not accept the criterion based on the outcome of the criterion but instead,
+we would like to have some certainty or confidence in the
+outcome before it can be accepted. Say, we want to be $ 1-\alpha\% $ certain that the outcome of $ Z $ is not
+noise. This leads to hypothesis testing. We state the following null-hypothesis
 \begin{align*}
 	H_0: & \mu_A = \mu_B = \mu.
 \end{align*}
 The null-hypothesis states that there is no difference in the mean function in
 the two seperate regions. We then get that the distriubtion of $ Z $ under $ H_0
-$ call it $ Z_0 $ is distributed as
+$ call it $ Z_0 $ and it is is distributed as
 \begin{align*}
 	Z \eqdis & \frac{\sigma^2}{n-1} \left(
 	\frac{2 n_B}{n_A -1} \chi^2_{n_A -1}
@@ -499,7 +499,7 @@ $ call it $ Z_0 $ is distributed as
 \end{align*}
 In fact, given the null-hyptohesis $ H_0 $, the individual Chi-Squared random variables are
 centered as well. If the null-hypothesis is true we would expect the outcome of $ Z $ to be
-somewhere around $ 0 $. In contrast, if $ H_0 $ is untrue, then, we expect the
+close to $ 0 $. In contrast, if $ H_0 $ is untrue, then, we expect the
 outcome of $ Z $ to be very negative. If the out come of $ Z $ is realised in the $
 	p\%$ quantile of $ Z_0 $, we reject $ H_0 $ since the outcome is to extreme
 under $ H_0 $. Can we find an analytic quantile?
