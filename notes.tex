@@ -474,6 +474,15 @@ Altogether, we can rewrite \eqref{eq:Z_law} to get
 where $\chi^2_{n_A -1}(\xi_A), \tilde \chi^2_{n_B -1}(\xi_B)$ and $\bar \chi_1^2(\xi_{\text{neg}})$ are independent.
 In the special case where $\mu_A = (c, \dots, c)^T$ is constant, we get that $\xi_A = 0$ (same for $\mu_B$). If $\mu = (c, \dots, c)^T$, then $\xi_{\text{neg}} = \xi_A = \xi_B = 0$, i.e. we get central chi squared distributions.
 
+
+\paragraph{Hypothesis test}
+To start off, we can look at creating a test for a single split. Since we have a
+distriution for the variable $ Z $, which is the difference between the msep
+after splitting $
+	MSEP_split $ and the msep without splitting $ MSEP $. We want to test that the
+difference between these is insignificant.. We want to test that the difference
+between these is insignificant.
+
 \subsection{Ratio distribution}
 Let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ and assume for the following that $H_0$ holds true. In order to find a statistic which does not depend on the unknown parameter $\sigma^2$, we would like to investigate the distribution of the ratio
 $$
