@@ -491,7 +491,7 @@ The null-hypothesis states that there is no difference in the mean function in
 the two seperate regions. We then get that the distriubtion of $ Z $ under $ H_0
 $ call it $ Z_0 $ and it is is distributed as
 \begin{align*}
-	Z \eqdis & \frac{\sigma^2}{n-1} \left(
+	Z_0 \eqdis & \frac{\sigma^2}{n-1} \left(
 	\frac{2 n_B}{n_A -1} \chi^2_{n_A -1}
 	+ \frac{2 n_A}{n_B -1} \tilde \chi^2_{n_B -1}
 	- (n+1) \bar \chi_1^2
@@ -522,7 +522,8 @@ long as the criterion
 \end{align*}
 is satisfied. $ \delta>0 $ is typically chosen heuristically as far as I know.
 This can be stated as splitting for as long as the msep decreases by atleast $
-	\delta $.
+	\delta $ at each iteration. Larger delta is more restrictive. One can tweak
+$ \delta $ to give better results. A dynamic $ delta $ can also be chosen.
 
 Our approach is equivalent as we continue to split as long as
 the criterion
@@ -530,9 +531,8 @@ the criterion
 	Z \leq q_\alpha ^0
 \end{align*}
 is satisfied. Here, $ q_\alpha^0 $ is the $ \alpha $ quantile under the
-null-hyptohesis $ H_0 $. However, we chose the tolerance via hypothesis testing
-based on hypothesis testing. Furthermore, the tolerance we choose will change based on the
-sample size and confidence level.
+null-hyptohesis $ H_0 $. However, we chose the tolerance via hypothesis testing. Furthermore, the tolerance we choose will change based on the
+sample size in the splitting node and confidence level.
 
 
 \paragraph{Limiting distribution of Z}
