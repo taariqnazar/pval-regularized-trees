@@ -600,4 +600,34 @@ $$
 	\P(R > r) = \P(Z_r > 0) = \P(Z_{r, 1} > 0)
 $$
 and the latter we can compute for each $r$ by e.g. the "chi2comb" python package.
+
+
+\subsection{Likelihood ratio test}
+As above, let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ (no signal) and define the alternative hypothesis $H_1 : \mu_A = (c_1, \dots, c_1)^T, \mu_B = (c_2, \dots, c_2)^T$ for some $c_1, c_2 \in \R$ with $c_1 \neq c_2$ (signal). These hypotheses can be equivalently described by
+%\begin{align}
+%Z \eqdis 
+% &\frac{\sigma^2}{n-1} \left( 
+%\frac{2 n_B}{n_A -1} \chi^2_{n_A -1}(\xi_A)
+%+ \frac{2 n_A}{n_B -1} \tilde \chi^2_{n_B -1}(\xi_B)
+%- (n+1) \bar \chi_1^2(\xi_{\text{neg}})
+%\right),
+%\end{align}
+setting $\xi_A = \xi_B = 0$ in \eqref{eq:Z_law2} and
+$$
+H_0 : \xi_{\text{neg}} = 0, \quad H_1 : \xi_{\text{neg}} > 0.
+$$
+Denoting by $z \in \R$ a realisation of $Z$, we get a generalised likelihood-ratio of the form
+$$
+\frac{
+\sup_{\xi_{\text{neg}} > 0} \sum_{j=0}^{\infty} K_j(\xi_{\text{neg}}) \frac{1}{2^{(n-1 + 2j)/2} \Gamma \left( (n-1 + 2j)/2 \right) } (\frac{z}{\sigma^2})^{(n-1 + 2j)/2 - 1} \exp\left({-\frac{z}{2 \sigma^2}} \right)
+}{
+\sum_{j=0}^{\infty} K_j(0) \frac{1}{2^{(n-1 + 2j)/2} \Gamma \left( (n-1 + 2j)/2 \right) } (\frac{z}{\sigma^2})^{(n-1 + 2j)/2 - 1} \exp\left({-\frac{z}{2 \sigma^2}} \right)
+}
+$$
+following [On the Distribution of Linear Combinations of Non-central Chi-Squares,
+By DAVID A. HARVILLE]. Here, $K_j$ are functions depending on $n_A, n_B$ and $\xi_{\text{neg}}$, but not on $z$.
+
+This quantity however is not independent of $\sigma^2$, which is why the likelihood ratio approach seems to be a bad ansatz if we want to avoid estimating $\sigma^2$.
+
+
 \end{document}
