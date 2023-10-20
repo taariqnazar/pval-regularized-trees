@@ -504,6 +504,36 @@ outcome of $ Z $ to be very negative. If the out come of $ Z $ is realised in th
 	p\%$ quantile of $ Z_0 $, we reject $ H_0 $ since the outcome is too extreme
 under $ H_0 $. Find analytical quantile!
 
+In a greedy approach, one stops splitting as soon as the criterion
+(\ref{split_criterion}) is met that is
+\begin{align*}
+	Z > 0.
+\end{align*}
+Or equivalently, continue splitting for as long as the criterion
+\begin{align*}
+	Z \leq 0,
+\end{align*}
+is satisfied. Using this simple criterion may be bad for generalization since we are
+not penalizing a model that is more complex. In practice, a tolerance can be
+chosen so that the criterion is more strict. That is, continue splitting as
+long as the criterion
+\begin{align*}
+	Z \leq -\delta,
+\end{align*}
+is satisfied. $ \delta>0 $ is typically chosen heuristically as far as I know.
+This can be stated as splitting for as long as the msep decreases by atleast $
+	\delta $.
+
+Our approach is equivalent as we continue to split as long as
+the criterion
+\begin{align*}
+	Z \leq q_\alpha ^0
+\end{align*}
+is satisfied. Here, $ q_\alpha^0 $ is the $ \alpha $ quantile under the
+null-hyptohesis $ H_0 $. However, we chose the tolerance via hypothesis testing
+based on hypothesis testing. Furthermore, the tolerance we choose will change based on the
+sample size and confidence level.
+
 
 \paragraph{Limiting distribution of Z}
 In the limit $ n_a, n_b \to \infty  $, we get that the eigenvalues of all tend
