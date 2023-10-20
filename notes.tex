@@ -471,6 +471,7 @@ Altogether, we can rewrite \eqref{eq:Z_law} to get
 	- (n+1) \bar \chi_1^2(\xi_{\text{neg}})
 	\right),
 \end{align}
+
 where $\chi^2_{n_A -1}(\xi_A), \tilde \chi^2_{n_B -1}(\xi_B)$ and $\bar \chi_1^2(\xi_{\text{neg}})$ are independent.
 In the special case where $\mu_A = (c, \dots, c)^T$ is constant, we get that $\xi_A = 0$ (same for $\mu_B$). If $\mu = (c, \dots, c)^T$, then $\xi_{\text{neg}} = \xi_A = \xi_B = 0$, i.e. we get central chi squared distributions.
 
@@ -488,8 +489,8 @@ noise. This leads to hypothesis testing. We state the following null-hypothesis
 	H_0: & \mu_A = \mu_B = \mu.
 \end{align*}
 The null-hypothesis states that there is no difference in the mean function in
-the two seperate regions. We then get that the distriubtion of $ Z $ under $ H_0
-$ call it $ Z_0 $ and it is is distributed as
+the two seperate regions. We then get that the distriubtion of $ Z $ under $ H_0$
+call it $ Z_0 $ and it is is distributed as
 \begin{align*}
 	Z_0 \eqdis & \frac{\sigma^2}{n-1} \left(
 	\frac{2 n_B}{n_A -1} \chi^2_{n_A -1}
@@ -500,12 +501,12 @@ $ call it $ Z_0 $ and it is is distributed as
 In fact, given the null-hyptohesis $ H_0 $, the individual Chi-Squared random variables are
 centered as well. If the null-hypothesis is true we would expect the outcome of $ Z $ to be
 close to $ 0 $. In contrast, if $ H_0 $ is untrue, then, we expect the
-outcome of $ Z $ to be very negative. If the out come of $ Z $ is realised in the $
-	p\%$ quantile of $ Z_0 $, we reject $ H_0 $ since the outcome is too extreme
+outcome of $ Z $ to be very negative. If the out come of $ Z $ is realised in the $p$ quantile of $ Z_0 $, we reject $ H_0 $ since the outcome is too extreme
 under $ H_0 $. Find analytical quantile!
 
 In a greedy approach, one stops splitting as soon as the criterion
 (\ref{split_criterion}) is met that is
+
 \begin{align*}
 	Z > 0.
 \end{align*}
@@ -534,17 +535,10 @@ is satisfied. Here, $ q_\alpha^0 $ is the $ \alpha $ quantile under the
 null-hyptohesis $ H_0 $. However, we chose the tolerance via hypothesis testing. Furthermore, the tolerance we choose will change based on the
 sample size in the splitting node and confidence level.
 
+An issue with the approach mentioned, is that the parameter $ \sigma $ needs to
+be specified. An estimate can then be used. In the following section we will
+instead be looking at a ratio, which does suffer the same issue.
 
-\paragraph{Limiting distribution of Z}
-In the limit $ n_a, n_b \to \infty  $, we get that the eigenvalues of all tend
-to $ 0 $ except for $ \lambda_neg = -1 $ in this limiting case, the
-distribution for $ Z_\infty $ is
-
-\begin{align*}
-	Z_\infty \eqdis -\sigma^2 \bar \chi_1^2
-\end{align*}
-
-Can we say something about this? Check that this is actually true.
 
 \subsection{Ratio distribution}
 Let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ and assume for the following that $H_0$ holds true. In order to find a statistic which does not depend on the unknown parameter $\sigma^2$, we would like to investigate the distribution of the ratio
@@ -614,20 +608,45 @@ As above, let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ (no signal) and 
 %\end{align}
 setting $\xi_A = \xi_B = 0$ in \eqref{eq:Z_law2} and
 $$
-H_0 : \xi_{\text{neg}} = 0, \quad H_1 : \xi_{\text{neg}} > 0.
+	H_0 : \xi_{\text{neg}} = 0, \quad H_1 : \xi_{\text{neg}} > 0.
 $$
 Denoting by $z \in \R$ a realisation of $Z$, we get a generalised likelihood-ratio of the form
 $$
-\frac{
-\sup_{\xi_{\text{neg}} > 0} \sum_{j=0}^{\infty} K_j(\xi_{\text{neg}}) \frac{1}{2^{(n-1 + 2j)/2} \Gamma \left( (n-1 + 2j)/2 \right) } (\frac{z}{\sigma^2})^{(n-1 + 2j)/2 - 1} \exp\left({-\frac{z}{2 \sigma^2}} \right)
-}{
-\sum_{j=0}^{\infty} K_j(0) \frac{1}{2^{(n-1 + 2j)/2} \Gamma \left( (n-1 + 2j)/2 \right) } (\frac{z}{\sigma^2})^{(n-1 + 2j)/2 - 1} \exp\left({-\frac{z}{2 \sigma^2}} \right)
-}
+	\frac{
+		\sup_{\xi_{\text{neg}} > 0} \sum_{j=0}^{\infty} K_j(\xi_{\text{neg}}) \frac{1}{2^{(n-1 + 2j)/2} \Gamma \left( (n-1 + 2j)/2 \right) } (\frac{z}{\sigma^2})^{(n-1 + 2j)/2 - 1} \exp\left({-\frac{z}{2 \sigma^2}} \right)
+	}{
+		\sum_{j=0}^{\infty} K_j(0) \frac{1}{2^{(n-1 + 2j)/2} \Gamma \left( (n-1 + 2j)/2 \right) } (\frac{z}{\sigma^2})^{(n-1 + 2j)/2 - 1} \exp\left({-\frac{z}{2 \sigma^2}} \right)
+	}
 $$
 following [On the Distribution of Linear Combinations of Non-central Chi-Squares,
-By DAVID A. HARVILLE]. Here, $K_j$ are functions depending on $n_A, n_B$ and $\xi_{\text{neg}}$, but not on $z$.
+		By DAVID A. HARVILLE]. Here, $K_j$ are functions depending on $n_A, n_B$ and $\xi_{\text{neg}}$, but not on $z$.
 
 This quantity however is not independent of $\sigma^2$, which is why the likelihood ratio approach seems to be a bad ansatz if we want to avoid estimating $\sigma^2$.
 
+\paragraph{Hypothesis Testing}
+Following the arguments in the previous section, we argue the following. In the
+ratio test, we look at relative reduction in msep instead of absolute
+difference. The criterion will instead be to continue as long as the relative
+reduction $r^* \leq r^0_\alpha$. Since finding the quantile can be difficult
+for general distributions of of msep. We can make it simpler in our case by
+looking at a linear combination of chi-squares. The general CDF can be computed
+from \cite{pm_linearchi} and computing the CDF for $R $ is equivalent to
+
+\begin{align*}
+	F_R^0(r) = \P(R^0 \leq r) = \P(Z_r^0 \leq 0)
+\end{align*}
+In practice, one should compute $ r^* $ and then $ \P(Z_{r^*}^0 \leq 0) $.
+
+
+\section{Limiting distribution of Z}
+In the limit $ n_a, n_b \to \infty  $, we get that the eigenvalues of all tend
+to $ 0 $ except for $ \lambda_neg = -1 $ in this limiting case, the
+distribution for $ Z_\infty $ is
+
+\begin{align*}
+	Z_\infty \eqdis -\sigma^2 \bar \chi_1^2
+\end{align*}
+
+Can we say something about this? Check that this is actually true.
 
 \end{document}
