@@ -541,17 +541,17 @@ instead be looking at a ratio, which does suffer the same issue.
 
 
 \subsection{Ratio distribution}
-Let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ and assume for the following that $H_0$ holds true. In order to find a statistic which does not depend on the unknown parameter $\sigma^2$, we would like to investigate the distribution of the ratio
+Let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ and denote by $\P_0$ a probability measure satisfying $H_0$, i.e. $\E_0[Y] = (c, \dots, c)^T$ for some $c \in \R$. In order to find a statistic which does not depend on the unknown parameter $\sigma^2$, we would like to investigate the distribution of the ratio
 $$
 	R = \frac{
 		\frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \bar Y_B)^2
 	}{
 		\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \bar Y)^2
-	}.
+	}
 $$
-For this purpose, we note that for each $r > 0$,
+under $\P_0$. For this purpose, we note that for each $r > 0$,
 \begin{align*}
-	\P(R > r) = \P(Z_r > 0),
+	\P_0(R > r) = \P_0(Z_r > 0),
 \end{align*}
 where
 $$
@@ -565,7 +565,7 @@ $$
 and the eigenvalues of $Q_r$ are given by
 \begin{align*}
 	\lambda_A^r =            & \frac{n_A +1}{n_A -1} - r\frac{n+1}{n-1} = \frac{(n_A + 1)(n-1) - r(n+1)(n_A -1)}{(n-1)(n_A -1)}, \\
-	\lambda_B^r =            & \frac{n_A +1}{n_A -1} - r\frac{n+1}{n-1} = \frac{(n_B + 1)(n-1) - r(n+1)(n_B -1)}{(n-1)(n_B -1)}, \\
+	\lambda_B^r =            & \frac{n_B +1}{n_B -1} - r\frac{n+1}{n-1} = \frac{(n_B + 1)(n-1) - r(n+1)(n_B -1)}{(n-1)(n_B -1)}, \\
 	\lambda_{\text{neg}}^r = & -r\frac{n+1}{n-1},                                                                                \\
 	\lambda_0^r =            & 0
 \end{align*}
@@ -581,22 +581,40 @@ and the eigenvalues of $Q_r$ are given by
 %$$
 %where $\chi^2_{n_A -1}, \tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$ are independent central chi squares and $\tilde Z$ hence follows a generalised $F$-distribution whose quantile function we can compute numerically.
 and the eigenspaces and geometric multiplicities are the same as for the corresponding $Q$-eigenvalues. Hence,
-\begin{align*}
+\begin{align}\label{eq:Z_r}
 	Z_r \eqdis
 	 & \sigma^2\left(
 	\lambda_A^r \chi^2_{n_A -1}
 	+ \lambda_B^r \tilde \chi^2_{n_B -1}
 	+ \lambda_{\text{neg}}^r \bar \chi_1^2
 	\right)
-\end{align*}
+\end{align}
 with independence between the central chi squares $\chi^2_{n_A -1}, \tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$. Denoting the random variable in brackets by $Z_{r, 1}$, it follows that
 $$
-	\P(R > r) = \P(Z_r > 0) = \P(Z_{r, 1} > 0)
+	\P_0(R > r) = \P_0(Z_r > 0) = \P_0(Z_{r, 1} > 0)
 $$
 and the latter we can compute for each $r$ by e.g. the "chi2comb" python package.
 
+\subsection{Efficient computation of $\P_0(R \leq r)$}
+Let 
+\begin{align}\label{eq:F_R}
+F_R^0(r) = \P_0(R \leq r)
+\end{align}
+denote the distribution function of the ratio $R$, given $H_0$ holds true. By the the last section together with [1971, Joseph L. Fleiss, On the Distribution of a Linear Combination of Independent Chi Squares, Corollary and following p.142], \eqref{eq:F_R} is given by
+\begin{align*}
+\P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n_A -1}{2} \right)\Gamma\left(\frac{n_B -1}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_R (1-x-y)^{\frac{n_A -1}{2} - 1} x^{\frac{n_B -1}{2} - 1} y^{\frac{1}{2} - 1} dx dy,
+\end{align*}
+where 
+$$
+R = \{(x, y) \in [0, 1]^2 \colon x + y \leq 1, \lambda_A^r(1-x-y) + \lambda_B^r x + \lambda_{\text{neg}}^r y \leq 0\}.
+$$
+The integral can thus be written as
+$$
+\int_0^1 \int_0^{u(y)} (1-x-y)^{\frac{n_A -3}{2} } x^{\frac{n_B -3}{2} } y^{-\frac{1}{2} } dx dy,
+$$
+where $u(y) = \max\left(\min\left(1 - y, - \frac{\lambda_A^r + y(\lambda_{\text{neg}}^r - \lambda_A^r)}{\lambda_{B}^r - \lambda_A^r}\right), 0 \right)$, in the case where $\lambda_{B}^r - \lambda_A^r > 0$ (if $\lambda_{B}^r - \lambda_A^r < 0$, change the roles of $A$ and $B$) and can hence be easily computed numerically. (Todo: Add case when $\lambda_A^r = \lambda_B^r$). However, for $n \approx 400$ and larger, the computation of the integral becomes numerically unstable.
 
-\subsection{Likelihood ratio test}
+\subsection{Likelihood ratio test idea}
 As above, let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ (no signal) and define the alternative hypothesis $H_1 : \mu_A = (c_1, \dots, c_1)^T, \mu_B = (c_2, \dots, c_2)^T$ for some $c_1, c_2 \in \R$ with $c_1 \neq c_2$ (signal). These hypotheses can be equivalently described by
 %\begin{align}
 %Z \eqdis 
