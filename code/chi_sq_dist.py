@@ -93,7 +93,7 @@ coffs = [((n_A + 1)*(n-1) - r*(n+1)*(n_A -1))/(n_A - 1), ((n_B + 1)*(n-1) - r*(n
 #print('Simulated:')
 #print(chi_sq_cdf_test(x, dfs, coffs, 1000000))
 
-axis = np.arange(0.8, 1.2, 0.001)
+axis = np.arange(0.9, 1.1, 0.0001)
 Fs = [F(r, n_A, n_B) for r in axis]
 plt.plot(axis, Fs)
 plt.show()
