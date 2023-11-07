@@ -595,15 +595,15 @@ $$
 $$
 and the latter we can compute for each $r$ by e.g. the "chi2comb" python package.
 
-\subsection{Efficient computation of $\P_0(R \leq r)$}
+\subsection{Efficient computation of $F_R^0(r)$}
 Let 
 \begin{align}\label{eq:F_R}
 F_R^0(r) = \P_0(R \leq r)
 \end{align}
 denote the distribution function of the ratio $R$, given $H_0$ holds true. By the the last section together with [1971, Joseph L. Fleiss, On the Distribution of a Linear Combination of Independent Chi Squares, Corollary and following p.142], \eqref{eq:F_R} is given by
-\begin{align*}
+\begin{align}\label{eq:intExp}
 \P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n_A -1}{2} \right)\Gamma\left(\frac{n_B -1}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_R (1-x-y)^{\frac{n_A -1}{2} - 1} x^{\frac{n_B -1}{2} - 1} y^{\frac{1}{2} - 1} dx dy,
-\end{align*}
+\end{align}
 where 
 $$
 R = \{(x, y) \in [0, 1]^2 \colon x + y \leq 1, \lambda_A^r(1-x-y) + \lambda_B^r x + \lambda_{\text{neg}}^r y \leq 0\}.
@@ -612,7 +612,17 @@ The integral can thus be written as
 $$
 \int_0^1 \int_0^{u(y)} (1-x-y)^{\frac{n_A -3}{2} } x^{\frac{n_B -3}{2} } y^{-\frac{1}{2} } dx dy,
 $$
-where $u(y) = \max\left(\min\left(1 - y, - \frac{\lambda_A^r + y(\lambda_{\text{neg}}^r - \lambda_A^r)}{\lambda_{B}^r - \lambda_A^r}\right), 0 \right)$, in the case where $\lambda_{B}^r - \lambda_A^r > 0$ (if $\lambda_{B}^r - \lambda_A^r < 0$, change the roles of $A$ and $B$) and can hence be easily computed numerically. (Todo: Add case when $\lambda_A^r = \lambda_B^r$). However, for $n \approx 400$ and larger, the computation of the integral becomes numerically unstable.
+where $u(y) = \max\left(\min\left(1 - y, - \frac{\lambda_A^r + y(\lambda_{\text{neg}}^r - \lambda_A^r)}{\lambda_{B}^r - \lambda_A^r}\right), 0 \right)$, in the case where $\lambda_{B}^r - \lambda_A^r > 0$ (if $\lambda_{B}^r - \lambda_A^r < 0$, change the roles of $A$ and $B$). If $\lambda_A^r = \lambda_B^r$, then  
+\begin{align*}
+\P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n -2}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_0^u (1-x)^{\frac{n -4}{2} }  x^{-\frac{1}{2}} dx,
+\end{align*}
+where $u = \max\left(\min\left(1, \frac{\lambda_A^r}{\lambda_A^r - \lambda_{\text{neg}}^r} \right), 0 \right)$, in the case where $\lambda_{\text{neg}}^r- \lambda_A^r > 0$ (otherwise switch the roles of $\lambda_{\text{neg}}^r$ and $\lambda_A^r$).
+
+For $n \approx 350$ and larger, the computation of the integral in \eqref{eq:intExp} becomes numerically unstable. However, for such large values of $n$, $R_0$ is close to a point mass at $1$ under $H_0$.
+
+%\begin{figure}[h]
+%\includegraphics[scale=1]{./Figures/F_R.png}
+%\end{figure}
 
 \subsection{Likelihood ratio test idea}
 As above, let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ (no signal) and define the alternative hypothesis $H_1 : \mu_A = (c_1, \dots, c_1)^T, \mu_B = (c_2, \dots, c_2)^T$ for some $c_1, c_2 \in \R$ with $c_1 \neq c_2$ (signal). These hypotheses can be equivalently described by
