@@ -696,4 +696,61 @@ distribution for $ Z_\infty $ is
 
 Can we say something about this? Check that this is actually true.
 
+
+
+\paragraph{Limit update (I think we were wrong about this the last time...)}
+Let $n \to \infty$ and assume that $n_A /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. We want to investigate the weak limit of $Z_{r, 1}$ under $H_0$, i.e. the limit of 
+\begin{align}\label{eq:Z_lim}
+\tilde \lambda_A^r \frac{\chi_{n_A - 1}}{n_A - 1} + \tilde \lambda_B^r \frac{\tilde \chi_{n_B - 1}}{n_B - 1} + \lambda_{\text{neg}}^r \bar \chi_{1},
+\end{align}
+where all chi-squares are independent and 
+\begin{align*}
+\tilde \lambda_A^r = &\frac{(n_A + 1)(n-1) - r(n+1)(n_A-1)}{n-1}, \\
+\tilde \lambda_B^r = &\frac{(n_B + 1)(n-1) - r(n+1)(n_B-1)}{n-1}, \quad \lambda_{\text{neg}}^r = -r \frac{n+1}{n-1}.
+\end{align*}
+The first two standardised chi-squares in \eqref{eq:Z_lim} each converge to $1$ in probability. Moreover,
+\begin{align*}
+&\lambda_{\text{neg}}^r \to - r, \\
+&\tilde \lambda_A^r = \frac{2 n_B}{n-1} + \frac{(1-r)(n+1)(n_A - 1)}{n-1}
+\to 
+\begin{cases}
+2(1-a), & r=1 \\
+- \infty, & r >1 \\
++ \infty, & r <1
+\end{cases}
+\end{align*}
+and similarly
+\begin{align*}
+\tilde \lambda_B^r 
+\to 
+\begin{cases}
+2a, & r=1 \\
+- \infty, & r >1 \\
++ \infty, & r <1.
+\end{cases}
+\end{align*}
+Hence, under $H_0$, we get convergence in distribution by the Slutzky Theorem
+\begin{align*}
+Z_{r, 1} \to Z_{r, 1}^\infty = 
+\begin{cases}
+2 - \bar \chi_{1}, & r=1 \\
+- \infty, & r >1 \\
++ \infty, & r <1.
+\end{cases}
+\end{align*}
+Since $Z_{r, 1}^\infty$ has no mass at $0$ for any $r > 0$, this implies that 
+\begin{align*}
+F_R^0(r) = \P_0(Z_{r, 1} \leq 0) \to \P_0(Z_{r, 1}^{\infty} \leq 0) = 
+\begin{cases}
+\P(\bar \chi_{1} \geq 2), & r=1 \\
+1, & r >1 \\
+0, & r <1.
+\end{cases}
+\end{align*}
+This shows that the ratio $R$ converges in probability to $1$ under $H_0$. This is in line with the numerical results in Figure \ref{fig:F_R}.
+
+
+
+
+
 \end{document}
