@@ -40,7 +40,7 @@ def chi_sq_cdf_sim(x,dfs, coffs, N):
 
 x = 0
 r = .99
-n_A, n_B = (15, 130)
+n_A, n_B = (200, 200)
 n = n_A + n_B
 dfs = [n_A - 1, n_B - 1, 1]
 coffs = [((n_A + 1)*(n-1) - r*(n+1)*(n_A -1))/(n_A - 1), ((n_B + 1)*(n-1) - r*(n+1)*(n_B -1))/(n_B - 1), - r*(n + 1)]
