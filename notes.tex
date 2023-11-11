@@ -4,6 +4,8 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
 
 %%% OUTLINES
 \newtheorem{theorem}{Theorem}[section]
@@ -541,17 +543,17 @@ instead be looking at a ratio, which does suffer the same issue.
 
 
 \subsection{Ratio distribution}
-Let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ and assume for the following that $H_0$ holds true. In order to find a statistic which does not depend on the unknown parameter $\sigma^2$, we would like to investigate the distribution of the ratio
+Let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ and denote by $\P_0$ a probability measure satisfying $H_0$, i.e. $\E_0[Y] = (c, \dots, c)^T$ for some $c \in \R$. In order to find a statistic which does not depend on the unknown parameter $\sigma^2$, we would like to investigate the distribution of the ratio
 $$
 	R = \frac{
 		\frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \bar Y_B)^2
 	}{
 		\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \bar Y)^2
-	}.
+	}
 $$
-For this purpose, we note that for each $r > 0$,
+under $\P_0$. For this purpose, we note that for each $r > 0$,
 \begin{align*}
-	\P(R > r) = \P(Z_r > 0),
+	\P_0(R > r) = \P_0(Z_r > 0),
 \end{align*}
 where
 $$
@@ -565,7 +567,7 @@ $$
 and the eigenvalues of $Q_r$ are given by
 \begin{align*}
 	\lambda_A^r =            & \frac{n_A +1}{n_A -1} - r\frac{n+1}{n-1} = \frac{(n_A + 1)(n-1) - r(n+1)(n_A -1)}{(n-1)(n_A -1)}, \\
-	\lambda_B^r =            & \frac{n_A +1}{n_A -1} - r\frac{n+1}{n-1} = \frac{(n_B + 1)(n-1) - r(n+1)(n_B -1)}{(n-1)(n_B -1)}, \\
+	\lambda_B^r =            & \frac{n_B +1}{n_B -1} - r\frac{n+1}{n-1} = \frac{(n_B + 1)(n-1) - r(n+1)(n_B -1)}{(n-1)(n_B -1)}, \\
 	\lambda_{\text{neg}}^r = & -r\frac{n+1}{n-1},                                                                                \\
 	\lambda_0^r =            & 0
 \end{align*}
@@ -580,23 +582,68 @@ and the eigenvalues of $Q_r$ are given by
 %+ \frac{2 n_A}{n_B -1} \tilde \chi^2_{n_B -1}}{(n+1) \bar \chi_1^2} > 1,
 %$$
 %where $\chi^2_{n_A -1}, \tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$ are independent central chi squares and $\tilde Z$ hence follows a generalised $F$-distribution whose quantile function we can compute numerically.
-and the eigenspaces and geometric multiplicities are the same as for the corresponding $Q$-eigenvalues. Hence,
-\begin{align*}
+and the eigenspaces and geometric multiplicities are the same as for the corresponding $Q$-eigenvalues. Hence, under $H_0$,
+\begin{align}\label{eq:Z_r}
 	Z_r \eqdis
 	 & \sigma^2\left(
 	\lambda_A^r \chi^2_{n_A -1}
 	+ \lambda_B^r \tilde \chi^2_{n_B -1}
 	+ \lambda_{\text{neg}}^r \bar \chi_1^2
 	\right)
-\end{align*}
+\end{align}
 with independence between the central chi squares $\chi^2_{n_A -1}, \tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$. Denoting the random variable in brackets by $Z_{r, 1}$, it follows that
 $$
-	\P(R > r) = \P(Z_r > 0) = \P(Z_{r, 1} > 0)
+	\P_0(R > r) = \P_0(Z_r > 0) = \P_0(Z_{r, 1} > 0).
 $$
-and the latter we can compute for each $r$ by e.g. the "chi2comb" python package.
 
+\subsection{Efficient computation of $F_R^0(r)$}
+Let like above
+\begin{align}\label{eq:F_R}
+F_R^0(r) = \P_0(R \leq r)
+\end{align}
+denote the distribution function of the ratio $R$, given $H_0$ holds true. By the the last section together with [1971, Joseph L. Fleiss, On the Distribution of a Linear Combination of Independent Chi Squares, Corollary and following p.142], \eqref{eq:F_R} is given by
+\begin{align}\label{eq:intExp}
+\P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n_A -1}{2} \right)\Gamma\left(\frac{n_B -1}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_D (1-x-y)^{\frac{n_A -1}{2} - 1} x^{\frac{n_B -1}{2} - 1} y^{\frac{1}{2} - 1} dx dy,
+\end{align}
+where 
+$$
+D = \{(x, y) \in [0, 1]^2 \colon x + y \leq 1, \lambda_A^r(1-x-y) + \lambda_B^r x + \lambda_{\text{neg}}^r y \leq 0\}.
+$$
+The integral can thus be written as
+$$
+\int_0^1 \int_0^{u(y)} (1-x-y)^{\frac{n_A -3}{2} } x^{\frac{n_B -3}{2} } y^{-\frac{1}{2} } dx dy,
+$$
+where $u(y) = \max\left(\min\left(1 - y, - \frac{\lambda_A^r + y(\lambda_{\text{neg}}^r - \lambda_A^r)}{\lambda_{B}^r - \lambda_A^r}\right), 0 \right)$, in the case where $\lambda_{B}^r - \lambda_A^r > 0$ (if $\lambda_{B}^r - \lambda_A^r < 0$, change the roles of $A$ and $B$). If $\lambda_A^r = \lambda_B^r$, then  
+\begin{align}\label{eq:intExp2}
+\P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n -2}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_0^u (1-x)^{\frac{n -4}{2} }  x^{-\frac{1}{2}} dx,
+\end{align}
+where $u = \max\left(\min\left(1, \frac{\lambda_A^r}{\lambda_A^r - \lambda_{\text{neg}}^r} \right), 0 \right)$, in the case where $\lambda_{\text{neg}}^r- \lambda_A^r > 0$ (otherwise switch the roles of $\lambda_{\text{neg}}^r$ and $\lambda_A^r$).
 
-\subsection{Likelihood ratio test}
+For $n \approx 350$ and larger, the computation of the integrals in \eqref{eq:intExp} and \eqref{eq:intExp2} become numerically unstable. However, this does not seem to be problematic since for such large values of $n$, the distribution  of $R$ under $H_0$ is close to a point mass at $1$ (cf. Figure \ref{fig:F_R}). 
+
+%\begin{figure}[h]
+%\includegraphics[scale=1]{./Figures/F_R.png}
+%\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{./Figures/10_13_F_R.png}\hfill
+\includegraphics[width=.5\textwidth]{./Figures/160_170_F_R.png}\hfill
+\caption{$F_R^0(r)$ for $(n_A, n_B) = (10, 13)$ and $(n_A, n_B) = (160, 170)$.}
+\label{fig:F_R}
+\end{figure}
+
+Figure \ref{fig:F_R_2} shows how the distributions change when $n_A, n_B$ vary while $n$ is fixed. It seems that low quantiles are not much affected by unbalancedness of $(n_A, n_B)$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{./Figures/50_50_F_R.png}\hfill
+\includegraphics[width=.5\textwidth]{./Figures/95_5_F_R.png}\hfill
+\caption{$F_R^0(r)$ for $(n_A, n_B) = (50, 50)$ and $(n_A, n_B) = (95, 5)$.}
+\label{fig:F_R_2}
+\end{figure}
+
+\subsection{Likelihood ratio test idea -- not promising}
 As above, let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ (no signal) and define the alternative hypothesis $H_1 : \mu_A = (c_1, \dots, c_1)^T, \mu_B = (c_2, \dots, c_2)^T$ for some $c_1, c_2 \in \R$ with $c_1 \neq c_2$ (signal). These hypotheses can be equivalently described by
 %\begin{align}
 %Z \eqdis 
@@ -623,7 +670,7 @@ following [On the Distribution of Linear Combinations of Non-central Chi-Squares
 
 This quantity however is not independent of $\sigma^2$, which is why the likelihood ratio approach seems to be a bad ansatz if we want to avoid estimating $\sigma^2$.
 
-\paragraph{Hypothesis Testing}
+\section{Hypothesis Testing}
 Following the arguments in the previous section, we argue the following. In the
 ratio test, we look at relative reduction in msep instead of absolute
 difference. The criterion will instead be to continue as long as the relative
@@ -648,5 +695,62 @@ distribution for $ Z_\infty $ is
 \end{align*}
 
 Can we say something about this? Check that this is actually true.
+
+
+
+\paragraph{Limit update (I think we were wrong about this the last time...)}
+Let $n \to \infty$ and assume that $n_A /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. We want to investigate the weak limit of $Z_{r, 1}$ under $H_0$, i.e. the limit of 
+\begin{align}\label{eq:Z_lim}
+\tilde \lambda_A^r \frac{\chi_{n_A - 1}}{n_A - 1} + \tilde \lambda_B^r \frac{\tilde \chi_{n_B - 1}}{n_B - 1} + \lambda_{\text{neg}}^r \bar \chi_{1},
+\end{align}
+where all chi-squares are independent and 
+\begin{align*}
+\tilde \lambda_A^r = &\frac{(n_A + 1)(n-1) - r(n+1)(n_A-1)}{n-1}, \\
+\tilde \lambda_B^r = &\frac{(n_B + 1)(n-1) - r(n+1)(n_B-1)}{n-1}, \quad \lambda_{\text{neg}}^r = -r \frac{n+1}{n-1}.
+\end{align*}
+The first two standardised chi-squares in \eqref{eq:Z_lim} each converge to $1$ in probability. Moreover,
+\begin{align*}
+&\lambda_{\text{neg}}^r \to - r, \\
+&\tilde \lambda_A^r = \frac{2 n_B}{n-1} + \frac{(1-r)(n+1)(n_A - 1)}{n-1}
+\to 
+\begin{cases}
+2(1-a), & r=1 \\
+- \infty, & r >1 \\
++ \infty, & r <1
+\end{cases}
+\end{align*}
+and similarly
+\begin{align*}
+\tilde \lambda_B^r 
+\to 
+\begin{cases}
+2a, & r=1 \\
+- \infty, & r >1 \\
++ \infty, & r <1.
+\end{cases}
+\end{align*}
+Hence, under $H_0$, we get convergence in distribution by the Slutzky Theorem
+\begin{align*}
+Z_{r, 1} \to Z_{r, 1}^\infty = 
+\begin{cases}
+2 - \bar \chi_{1}, & r=1 \\
+- \infty, & r >1 \\
++ \infty, & r <1.
+\end{cases}
+\end{align*}
+Since $Z_{r, 1}^\infty$ has no mass at $0$ for any $r > 0$, this implies that 
+\begin{align*}
+F_R^0(r) = \P_0(Z_{r, 1} \leq 0) \to \P_0(Z_{r, 1}^{\infty} \leq 0) = 
+\begin{cases}
+\P(\bar \chi_{1} \geq 2), & r=1 \\
+1, & r >1 \\
+0, & r <1.
+\end{cases}
+\end{align*}
+This shows that the ratio $R$ converges in probability to $1$ under $H_0$. This is in line with the numerical results in Figure \ref{fig:F_R}. Note that the limit does not depend on $a$.
+
+
+
+
 
 \end{document}
