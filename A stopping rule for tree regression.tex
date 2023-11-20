@@ -104,7 +104,7 @@ Consider a random covariate-response pair $(X, Y)$ taking values in $\R^{d} \tim
 $$
 \calL(Y_i) = \calL\left(Y \mid X = x_i \right)  = \Normal(\mu(x_i), \sigma^2)
 $$
-for an unknown regression function $\mu \colon \R^d \to \R$ and unknown $\sigma^2 > 0$. Let $(X^*, Y^*)$ be iid with respect to $(X, Y)$ and $(Y_i)_{i=1}^N$.
+for an unknown regression function $\mu \colon \R^d \to \R$ and unknown $\sigma^2 > 0$. Let $(X^*, Y^*)$ be iid with respect to $(X, Y)$ and independent of $(Y_i)_{i=1}^N$.
 
 Suppose we have a disjoint partition $ \bigcup_{j=1}^J D_j = \R^d$ and a tree regressor
 \begin{align}\label{eq:mu_hat_0}
@@ -159,7 +159,7 @@ this motivates the stopping test statistic
 \begin{align}\label{eq:R_j}
 R_j = \frac{\widehat \MSEP^1_j}{\widehat \MSEP^0_j} = \frac{(n_{A_j} +1) \hat \sigma^2_{A_j} + (n_{B_j} +1) \hat \sigma^2_{B_j}}{(n_{D_j} +1) \hat \sigma^2_{D_j}}
 \end{align}
-for a split at node $j$. Following \eqref{eq:stop_criterion}, the interpretation of $R_j \gg 1$ is that with a high probability, the generalization error has increased after splitting.
+for a split at node $j$. Following \eqref{eq:stop_criterion}, the interpretation of $R_j \gg 1$ is that, with a high probability, the generalization error has increased after splitting.
 
 \subsection{An alternative motivation: Covariance penalties}
 Let $Y_1^*, \dots, Y_N^*$ be independent, independent of $(Y_i)_{i=1}^N$ and satisfying $\calL(Y_i^*) = \calL(Y_i)$ for $i=1, \dots, N$. Here, $(Y_i)_{i=1}^N$ is defined as in the beginning of section \ref{sec:test_stat}. Define the in-sample mean squared error of prediction before and after a split at node $j$ by 
