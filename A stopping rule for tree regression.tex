@@ -1,0 +1,206 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage[dvips]{epsfig}
+\usepackage{longtable}
+\usepackage{graphics}
+\usepackage{multirow}
+\usepackage[section]{placeins}
+\usepackage{graphicx}				
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{tensor}
+
+
+% for comments
+\usepackage{todonotes} 
+\newcommand{\taariq}[1]{\todo[inline,color=green!20!white]{\textbf{Taariq:} #1}}
+\newcommand{\nils}[1]{\todo[inline,color=blue!20!white]{\textbf{Nils:} #1}}
+
+%Title
+\def\university#1{{\sl \begin{center} #1 \vspace{5pt} \end{center} } }
+\def\inst#1{\vspace{1pt} \unskip$^{#1}$}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
+
+%Commands
+\renewcommand{\P}{\operatorname{P}}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\calG}{\mathcal{G}}
+\newcommand{\calH}{\mathcal{H}}
+\newcommand{\calT}{\mathcal{T}}
+\newcommand{\calD}{\mathcal{D}}
+\newcommand{\calA}{\mathcal{A}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calR}{\mathcal{R}}
+\newcommand{\calP}{\mathcal{P}}
+
+
+% Modes of convergence
+\newcommand{\distr}{\stackrel{d}{\to}}
+\newcommand{\as}{\stackrel{\textrm{a.s.}}{\to}}
+\newcommand{\inprob}{\stackrel{\P}{\to}}
+\newcommand{\weakly}{\stackrel{w}{\to}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Tr}{\operatorname{Tr}}
+
+% Distributions
+\newcommand{\NegMult}{\operatorname{NegMult}}
+\newcommand{\NegBin}{\operatorname{NegBin}}
+\newcommand{\Pois}{\operatorname{Pois}}
+\newcommand{\Mult}{\operatorname{Mult}}
+\newcommand{\Normal}{\operatorname{N}}
+
+%%% SYMBOLS
+\newcommand{\R}{\mathbb{R}}  % The real numbers.
+\newcommand{\E }{\mathbb{E}}  % Expectation Operator
+\renewcommand{\P}{\mathbb{P}}  % Probability
+\newcommand{\Cov}{\operatorname{Cov}}  % Cov Operator
+\newcommand{\Var}{\operatorname{Var}}  % Var Operator
+\newcommand{\MSEPin}{\textbf{MSEP}_{\text{in}}}
+\newcommand{\MSEPOin}{{\textbf{MSEP}^0}_{\text{in}}}
+\newcommand{\MSEPIin}{\textbf{MSEP}^1_{\text{in}}}
+\newcommand{\MSEP}{\textbf{MSEP}}
+\newcommand{\MSE}{\textbf{MSE}}
+\newcommand{\eqdis}{\stackrel{d}{=}}
+
+\newcommand{\bigzero}{\mbox{\normalfont\Large\bfseries 0}}
+\newcommand{\bigone}{\mbox{\normalfont\Large\bfseries I}}
+
+\title{A stopping rule for tree regression}
+\author{Mathias Lindholm, Taariq Nazar, Filip Lindskog, Nils Engler}
+
+
+%\date{}
+
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+% keywords
+\noindent {\bf Keywords}: overfitting, covariance-penalties, cost-complexity parameters
+
+\section{Introduction}
+
+\section{An iterative stopping test statistic}\label{sec:test_stat}
+
+Consider a random covariate-response pair $(X, Y)$ taking values in $\R^{d} \times \R$. Assume fixed covariate trainings data $x_1, \dots, x_N$ and iid trainings-response-data $Y_1, \dots, Y_N $ satisfying 
+$$
+\calL(Y_i) = \calL\left(Y \mid X = x_i \right)  = \Normal(\mu(x_i), \sigma^2)
+$$
+for an unknown regression function $\mu \colon \R^d \to \R$ and unknown $\sigma^2 > 0$. Let $(X^*, Y^*)$ be iid with respect to $(X, Y)$ and $(Y_i)_{i=1}^N$.
+
+Suppose we have a disjoint partition $ \bigcup_{j=1}^J D_j = \R^d$ and a tree regressor
+\begin{align}\label{eq:mu_hat_0}
+\hat \mu_0(x) = \hat \mu_0(x, (x_i, Y_i)_{i=1}^N) = \sum_{j=1}^J I\{x \in D_j\} \hat m_j,
+\end{align}
+where $\hat m_j = \frac{1}{n_{D_j}} \sum_{i = 1}^{N} Y_i I\{x_i \in D_j\}$ with $n_{D_j} = |\{i \colon x_i \in D_j  \}|$. 
+%Here, we have assumed without loss of generality that $x_1, \dots, x_{n_{D_j}} \in D_1, x_{n_1 + 1}, \dots, x_{n_{D_j}} \in D_2$ etc. 
+Let
+\begin{align*}
+\mu_{D_j} = \E[Y \mid X \in D_j ], \quad \sigma^2_{D_j} = \E[(Y-\mu_{D_j})^2 \mid X \in D_j]
+= \Var(Y \mid X \in D_j).
+ \end{align*}
+ Note that $\hat \mu(x)$ is a random variable since it is a function of the trainings-responses $(Y_i)_{i=1}^N$. Denote by 
+ $$
+ \MSEP^0_j = \E \left[
+\left(Y^* - \hat \mu_0(X^*)\right)^2 \mid X^* \in D_j
+ \right] 
+ $$ 
+ the generalization error of the predictor $\hat \mu_0$, given region $D_j$.
+\begin{lemma}\label{lem:mot1}
+Then,
+\begin{align*}
+\MSEP^0_j =  \sigma_{D_j}^2\left(1 + \frac{1}{n_{D_j}}\right). 
+\end{align*}
+\end{lemma}
+
+Fix a region $j$ and let $A_j \dot \cup B_j = D_j$ be a split at the terminal node $j$. Let $\hat \mu_1$ be defined as in \eqref{eq:mu_hat_0}, but with $J+1$ regions after splitting node $j$. As above, define the generalization error of $\hat \mu_1$, given $D_j$,
+ $$
+ \MSEP^1_j = \E \left[
+\left(Y^* - \hat \mu_1(X^*)\right)^2 \mid X^* \in D_j
+ \right].
+ $$ 
+
+\begin{lemma}\label{lem:MSEP1}
+Then,
+\begin{align*}
+\MSEP^1_j = \sigma_{A_j}^2\left(1 + \frac{1}{n_{A_j}}\right)\pi_{A_j \mid D_j} + \sigma_{B_j}^2\left(1 + \frac{1}{n_{B_j}}\right)\pi_{B_j \mid D_j},
+\end{align*}
+where $\pi_{A_j\mid D_j} = \P(X \in A_j \mid X \in D_j)$ and analogous for $\pi_{B_j \mid D_j}$.
+\end{lemma}
+
+The split at node $j$ increased the mean squared error of prediction (generalisation error) in region $D_j$, if 
+\begin{align}\label{eq:stop_criterion}
+\MSEP^0_j < \MSEP^1_j.
+\end{align}
+Estimating the unknown parameters $\sigma_{A_j}^2, \pi_{A_j \mid D_j}$ by the unbiased estimators 
+\begin{align}\label{eq:par_estimators}
+\hat \sigma_{A_j}^2 = \frac{1}{n_{A_j} - 1} \sum_{i \colon x_i \in A_j} (Y_i - \overline Y_{A_j})^2, \quad  \hat \pi_{A_j \mid D_j} = n_{A_j}/n_{D_j},
+\end{align}
+where $\overline Y_{A_j} = 1/n_A \sum_{i \colon x_i \in A_j} Y_i$, and similarly for $\sigma_{B_j}^2, \pi_{B_j \mid D_j}$,
+this motivates the stopping test statistic
+\begin{align}\label{eq:R_j}
+R_j = \frac{\widehat \MSEP^1_j}{\widehat \MSEP^0_j} = \frac{(n_{A_j} +1) \hat \sigma^2_{A_j} + (n_{B_j} +1) \hat \sigma^2_{B_j}}{(n_{D_j} +1) \hat \sigma^2_{D_j}}
+\end{align}
+for a split at node $j$. Following \eqref{eq:stop_criterion}, the interpretation of $R_j \gg 1$ is that with a high probability, the generalization error has increased after splitting.
+
+\subsection{An alternative motivation: Covariance penalties}
+Let $Y_1^*, \dots, Y_N^*$ be iid and iid with respect to $(Y_i)_{i=1}^N$, where the latter is defined as in the beginning of section \ref{sec:test_stat}. Define the in-sample mean squared error of prediction before and after a split at node $j$ by 
+\begin{align*}
+{\MSEPOin}_{,j} = \frac{1}{n_{D_j}} \sum_{i \colon x_i \in D_j} (Y_i^* - \hat \mu_0(x_i))^2, \quad
+{\MSEPIin}_{,j} = \frac{1}{n_{D_j}} \sum_{i \colon x_i \in D_j} (Y_i^* - \hat \mu_1(x_i))^2.
+\end{align*}
+
+%Hence, writing $\mu_i = \mu(x_i)$ for $i=1, \dots, N$, $(Y_i)_{i=1}^N$ follows a multivariate normal distribution with
+%$$
+%	\mu = (\mu_1, \dots, \mu_N)^T, \quad \Sigma = \sigma^2 I_N.
+%$$
+
+\begin{lemma}\label{lem:mot2}
+Then,
+\begin{align*}
+\E[{\MSEPOin}_{,j}]
+ = &\sigma_{D_j}^2\left(1 + \frac{1}{n_{D_j}}\right), \\
+\E[{\MSEPIin}_{,j}] =  &\sigma_{A_j}^2\left(1 + \frac{1}{n_{A_j}}\right)\pi_{A_j \mid D_j} + \sigma_{B_j}^2\left(1 + \frac{1}{n_{B_j}}\right)\pi_{B_j \mid D_j},
+\end{align*}
+where $\pi_{A_j\mid D_j} = \P(X \in A_j \mid X \in D_j)$ and analogous for $\pi_{B_j \mid D_j}$.
+\end{lemma}
+Choosing the same estimators as in \eqref{eq:par_estimators}, this approach hence motivates the same stopping testing statistic $R_j$ as in \eqref{eq:R_j}.
+
+
+\subsection{The distribution under $H_0$}
+
+\subsection{Signal/No-signal hypothesis testing}
+
+
+\section{The stopping rule}
+
+\section{Numerical illustration}
+
+
+
+\begin{thebibliography}{99}
+
+\end{thebibliography}
+
+\end{document}
+
+
+
