@@ -162,7 +162,7 @@ R_j = \frac{\widehat \MSEP^1_j}{\widehat \MSEP^0_j} = \frac{(n_{A_j} +1) \hat \s
 for a split at node $j$. Following \eqref{eq:stop_criterion}, the interpretation of $R_j \gg 1$ is that with a high probability, the generalization error has increased after splitting.
 
 \subsection{An alternative motivation: Covariance penalties}
-Let $Y_1^*, \dots, Y_N^*$ be iid and iid with respect to $(Y_i)_{i=1}^N$, where the latter is defined as in the beginning of section \ref{sec:test_stat}. Define the in-sample mean squared error of prediction before and after a split at node $j$ by 
+Let $Y_1^*, \dots, Y_N^*$ be independent, independent of $(Y_i)_{i=1}^N$ and satisfying $\calL(Y_i^*) = \calL(Y_i)$ for $i=1, \dots, N$. Here, $(Y_i)_{i=1}^N$ is defined as in the beginning of section \ref{sec:test_stat}. Define the in-sample mean squared error of prediction before and after a split at node $j$ by 
 \begin{align*}
 {\MSEPOin}_{,j} = \frac{1}{n_{D_j}} \sum_{i \colon x_i \in D_j} (Y_i^* - \hat \mu_0(x_i))^2, \quad
 {\MSEPIin}_{,j} = \frac{1}{n_{D_j}} \sum_{i \colon x_i \in D_j} (Y_i^* - \hat \mu_1(x_i))^2.
