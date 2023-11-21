@@ -185,14 +185,47 @@ where $\pi_{A_j\mid D_j} = \P(X \in A_j \mid X \in D_j)$ and analogous for $\pi_
 Choosing the same estimators as in \eqref{eq:par_estimators}, this approach hence motivates the same stopping testing statistic $R_j$ as in \eqref{eq:R_j}.
 
 
-\subsection{The distribution under $H_0$}
+
 
 \subsection{Signal/No-signal hypothesis testing}
 
 
+\subsection{The distribution function under the Null-Hypothesis}
+For the sake of readibility, we keep node $j$ fixed and drop it from the notation in the following. That is, we denote $n_{D_j}$ by $n$, and $n_{A_j}, n_{B_j}$ by $n_A$, $n_B$. Let
+$$
+F^0_R(r) = \P_0(R \leq r)
+$$
+be the distribution function of the stopping test statistic $R$ from \eqref{eq:R_j}, given $H_0$ holds true.
+\begin{lemma}
+It holds that
+\begin{align*}
+F_R^0(r) = \P_0(Z_r \leq 0), 
+\end{align*}
+where, under $H_0$,
+\begin{align}\label{eq:Z_r}
+	Z_r \eqdis
+	\lambda_A^r \chi^2_{n_A -1}
+	+ \lambda_B^r \tilde \chi^2_{n_B -1}
+	+ \lambda_{\text{neg}}^r \bar \chi_1^2,
+\end{align}
+with
+\begin{align*}
+	\lambda_A^r =             \frac{n_A +1}{n_A -1} - r\frac{n+1}{n-1}, \quad 
+		\lambda_B^r =             \frac{n_B +1}{n_B -1} - r\frac{n+1}{n-1}, \quad
+	\lambda_{\text{neg}}^r = & -r\frac{n+1}{n-1}
+\end{align*}
+and $\chi^2_{n_A -1}$, $\tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$ are independent chi-squared distributed random variables.
+\end{lemma}
+
+\begin{lemma}[Large sample size]
+Let $n \to \infty$ and assume that $n_{A} /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. Then, under $H_0$, $R$ converges to $1$ in probability.
+\end{lemma}
+
 \section{The stopping rule}
 
 \section{Numerical illustration}
+
+\section{Proofs}
 
 
 
