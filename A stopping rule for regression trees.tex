@@ -15,6 +15,7 @@
 \usepackage{amssymb}
 \usepackage{mathtools}
 \usepackage{tensor}
+\usepackage{float}
 
 
 % for comments
@@ -79,7 +80,7 @@
 \newcommand{\bigzero}{\mbox{\normalfont\Large\bfseries 0}}
 \newcommand{\bigone}{\mbox{\normalfont\Large\bfseries I}}
 
-\title{A stopping rule for tree regression}
+\title{A stopping rule for regression trees}
 \author{Mathias Lindholm, Taariq Nazar, Filip Lindskog, Nils Engler}
 
 
@@ -217,15 +218,90 @@ with
 and $\chi^2_{n_A -1}$, $\tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$ are independent chi-squared distributed random variables.
 \end{lemma}
 
-\begin{lemma}[Large sample size]
+The next result shows large sample size properties of $R$.
+\begin{lemma}[Large sample size]\label{lem:large_sample}
 Let $n \to \infty$ and assume that $n_{A} /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. Then, under $H_0$, $R$ converges to $1$ in probability.
 \end{lemma}
+This is in line with the numerical results in Figure \ref{fig:F_R}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{./Figures/10_13_F_R.png}\hfill
+\includegraphics[width=.5\textwidth]{./Figures/160_170_F_R.png}\hfill
+\caption{$F_R^0(r)$ for $(n_A, n_B) = (10, 13)$ and $(n_A, n_B) = (160, 170)$.}
+\label{fig:F_R}
+\end{figure}
+
+Figure \ref{fig:F_R_2} shows how the distributions change when $n_A, n_B$ vary while $n$ is fixed. It seems that low quantiles are not much affected by unbalancedness of $(n_A, n_B)$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{./Figures/50_50_F_R.png}\hfill
+\includegraphics[width=.5\textwidth]{./Figures/95_5_F_R.png}\hfill
+\caption{$F_R^0(r)$ for $(n_A, n_B) = (50, 50)$ and $(n_A, n_B) = (95, 5)$.}
+\label{fig:F_R_2}
+\end{figure}
+
+
 
 \section{The stopping rule}
 
 \section{Numerical illustration}
 
-\section{Proofs}
+\section{Appendix: Proofs}
+
+\begin{proof}[Proof of Lemma \ref{lem:large_sample}]
+Let $n \to \infty$ and assume that $n_A /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. We first want to investigate the weak limit of $Z_{r}$ under $H_0$, i.e. the limit of 
+\begin{align}\label{eq:Z_lim}
+\tilde \lambda_A^r \frac{\chi_{n_A - 1}}{n_A - 1} + \tilde \lambda_B^r \frac{\tilde \chi_{n_B - 1}}{n_B - 1} + \lambda_{\text{neg}}^r \bar \chi_{1},
+\end{align}
+where all chi-squares are independent and 
+\begin{align*}
+\tilde \lambda_A^r = &\frac{(n_A + 1)(n-1) - r(n+1)(n_A-1)}{n-1}, \\
+\tilde \lambda_B^r = &\frac{(n_B + 1)(n-1) - r(n+1)(n_B-1)}{n-1}, \quad \lambda_{\text{neg}}^r = -r \frac{n+1}{n-1}.
+\end{align*}
+The first two standardised chi-squares in \eqref{eq:Z_lim} each converge to $1$ in probability. Moreover,
+\begin{align*}
+&\lambda_{\text{neg}}^r \to - r, \\
+&\tilde \lambda_A^r = \frac{2 n_B}{n-1} + \frac{(1-r)(n+1)(n_A - 1)}{n-1}
+\to 
+\begin{cases}
+2(1-a), & r=1 \\
+- \infty, & r >1 \\
++ \infty, & r <1
+\end{cases}
+\end{align*}
+and similarly
+\begin{align*}
+\tilde \lambda_B^r 
+\to 
+\begin{cases}
+2a, & r=1 \\
+- \infty, & r >1 \\
++ \infty, & r <1.
+\end{cases}
+\end{align*}
+Hence, under $H_0$, we get convergence in distribution by the Slutzky Theorem
+\begin{align*}
+Z_{r} \to Z_{r}^\infty := 
+\begin{cases}
+2 - \bar \chi_{1}, & r=1 \\
+- \infty, & r >1 \\
++ \infty, & r <1.
+\end{cases}
+\end{align*}
+Since $Z_{r}^\infty$ has no mass at $0$ for any $r > 0$, this implies that 
+\begin{align*}
+F_R^0(r) = \P_0(Z_{r} \leq 0) \to \P_0(Z_{r}^{\infty} \leq 0) = 
+\begin{cases}
+\P(\bar \chi_{1} \geq 2), & r=1 \\
+1, & r >1 \\
+0, & r <1.
+\end{cases}
+\end{align*}
+This shows that the ratio $R$ converges to $1$ under $H_0$ in distribution (and hence in probability). Note that the limit does not depend on $a$.
+
+\end{proof}
 
 
 
