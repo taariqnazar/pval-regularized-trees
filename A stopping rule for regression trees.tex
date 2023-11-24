@@ -107,6 +107,8 @@ $$
 $$
 for an unknown regression function $\mu \colon \R^d \to \R$ and unknown $\sigma^2 > 0$. Let $(X^*, Y^*)$ be iid with respect to $(X, Y)$ and independent of $(Y_i)_{i=1}^N$.
 
+\subsection{Motivation}
+
 Suppose we have a disjoint partition $ \bigcup_{j=1}^J D_j = \R^d$ and a tree regressor
 \begin{align}\label{eq:mu_hat_0}
 \hat \mu_0(x) = \hat \mu_0(x, (x_i, Y_i)_{i=1}^N) = \sum_{j=1}^J I\{x \in D_j\} \hat m_j,
@@ -191,13 +193,13 @@ Choosing the same estimators as in \eqref{eq:par_estimators}, this approach henc
 \subsection{Signal/No-signal hypothesis testing}
 
 
-\subsection{The distribution function under the Null-Hypothesis}
-For the sake of readibility, we keep node $j$ fixed and drop it from the notation in the following. That is, we denote $n_{D_j}$ by $n$, and $n_{A_j}, n_{B_j}$ by $n_A$, $n_B$. Let
+\subsection{The null distribution}
+For the sake of readibility, we keep node $j$ fixed and drop it from the notation in the following. That is, we write $H_0, R, n, n_{A}, n_{B}$, instead of $H_0^j, R_j, n_{D_j}, n_{A_j}, n_{B_j}$. Let
 $$
 F^0_R(r) = \P_0(R \leq r)
 $$
 be the distribution function of the stopping test statistic $R$ from \eqref{eq:R_j}, given $H_0$ holds true.
-\begin{lemma}
+\begin{lemma}\label{lem:distr_R}
 It holds that
 \begin{align*}
 F_R^0(r) = \P_0(Z_r \leq 0), 
@@ -215,7 +217,7 @@ with
 		\lambda_B^r =             \frac{n_B +1}{n_B -1} - r\frac{n+1}{n-1}, \quad
 	\lambda_{\text{neg}}^r = & -r\frac{n+1}{n-1}
 \end{align*}
-and $\chi^2_{n_A -1}$, $\tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$ are independent chi-squared distributed random variables.
+and $\chi^2_{n_A -1}$, $\tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$ are independent chi-squared distributed random variables with $n_A - 1, n_B -1$ and $1$ degrees of freedeom, respectively.
 \end{lemma}
 
 The next result shows large sample size properties of $R$.
@@ -250,8 +252,270 @@ Figure \ref{fig:F_R_2} shows how the distributions change when $n_A, n_B$ vary w
 
 \section{Appendix: Proofs}
 
+\begin{proof}[Proof of Lemma \ref{lem:distr_R}]
+Assume without loss of generality that $x_1, \dots, x_{n_A} \in A$ and $x_{n_A + 1}, \dots, x_n \in B$. We wish to determine the distribution function $F_R^0$ of
+$$
+	R = \frac{
+		\frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \bar Y_B)^2
+	}{
+		\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \bar Y)^2
+	}
+$$
+under $H_0$, i.e. given that $\E[Y_i] = c$ for all $i$ with $x_i \in D = A \dot \cup B$ for some $c \in \R$. For this purpose, we note that for each $r > 0$,
+\begin{align*}
+	F_R^0(r) = \P_0(R \leq r) = \P_0(Z_r \leq 0),
+\end{align*}
+where
+\begin{align}\label{eq:Z_r}
+	Z_r = \frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \bar Y_B)^2 - r
+	\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \bar Y)^2.
+\end{align}
+Let
+\begin{align}
+	D_A =\left[\begin{array}{@{}c|c@{}}
+			           \begin{matrix}
+				1 & \cdots & 1 \\
+				  & \vdots     \\
+				1 & \cdots & 1
+			\end{matrix}
+			                    & \quad \bigzero \quad \\
+			           \hline                          \\
+			           \bigzero &
+			           \bigzero                        \\
+			           \quad
+		           \end{array}\right],
+	\quad
+	I_A =\left[\begin{array}{@{}c|c@{}}
+			           \quad                           \\
+			           \quad \bigone_{n_A} \quad
+			                    & \quad \bigzero \quad \\
+			           \quad                           \\
+			           \hline                          \\
+			           \bigzero &
+			           \bigzero                        \\
+			           \quad
+		           \end{array}\right]
+\end{align}
+and $D_B, I_B$ defined correspondingly, with the one-matrix and the identity matrix in the lower right block instead. We can then rewrite \eqref{eq:Z_r} as a quadratic form
+\begin{align*}
+	Z_r = Y^T Q_r Y,
+\end{align*}
+where
+\begin{align*}
+	Q_r = & \frac{n_A +1}{n_A -1} \left(I_A - \frac{1}{n_A} D_A\right)^T\left(I_A - \frac{1}{n_A} D_A\right) +       \\
+	    & \frac{n_B +1}{n_B -1} \left(I_B - \frac{1}{n_B} D_B\right)^T\left(I_B - \frac{1}{n_B} D_B\right) -       \\
+	    & r\frac{n +1}{n -1} \left(I_n - \frac{1}{n} \mathbf{1} \right)^T\left(I_n - \frac{1}{n} \mathbf{1}\right).
+\end{align*}
+Here, $\mathbf{1}$ is the matrix of ones only. Using that all matrices in brackets are symmetric and idempotent,
+\begin{align*}
+	 & Q_r = \frac{n_A +1}{n_A -1} \left(I_A - \frac{1}{n_A} D_A\right) +
+	\frac{n_B +1}{n_B -1}\left(I_B - \frac{1}{n_B} D_B\right) -
+	r\frac{n +1}{n -1}\left(I_n - \frac{1}{n} \mathbf{1}\right) =        \\
+	 &
+	\left[\begin{array}{@{}c|c@{}}
+			      \begin{matrix}
+				\frac{n_A +1}{n_A} - \frac{r(n+1)}{n}              & \frac{r(n+1)}{(n-1)n} - \frac{n_A +1}{(n_A -1)n_A} & \cdots \\
+				\frac{r(n+1)}{(n-1)n} - \frac{n_A +1}{(n_A -1)n_A} &                                                          \\
+				\vdots                                          & \ddots                                          &
+			\end{matrix}
+			                                       & \begin{matrix}
+				                                   \frac{r(n+1)}{(n-1)n} & \cdots & \\
+				                                   \vdots                        \\
+			                                   \end{matrix}                                           \\
+			      \hline                                                                                                     \\
+			      \begin{matrix}
+				\frac{r(n+1)}{(n-1)n} & \cdots & \\
+				\vdots                        \\
+			\end{matrix} &
+			      \begin{matrix}
+				\frac{n_B +1}{n_B} - \frac{r(n+1)}{n}              & \frac{r(n+1)}{(n-1)n} - \frac{n_B +1}{(n_B -1)n_B} & \cdots \\
+				\frac{r(n+1)}{(n-1)n} - \frac{n_B +1}{(n_B -1)n_B} &                                                          \\
+				\vdots                                          & \ddots                                          &
+			\end{matrix} \\
+		      \end{array}\right].
+\end{align*}
+$Q_r$ has four distinct eigenvalues
+\begin{align*}
+	\lambda_A^r =            & \frac{n_A +1}{n_A -1} - r\frac{n+1}{n-1}, \\
+	\lambda_B^r =            & \frac{n_B +1}{n_B -1} - r\frac{n+1}{n-1}, \\
+	\lambda_{\text{neg}}^r = & -r\frac{n+1}{n-1},                                                      \\
+	\lambda_0^r =            & 0
+\end{align*}
+with corresponding eigenspaces
+\begin{align}
+	\begin{split}\label{eq:Eigenspaces}
+		\text{Eig}_{\lambda_A} = &\text{span}\left(
+		\begin{bmatrix}
+				1      \\
+				-1     \\
+				0      \\
+				\vdots \\
+				0      \\
+				\mathbf{0}_{n_B}
+			\end{bmatrix},
+		\dots,
+		\begin{bmatrix}
+				1      \\
+				0      \\
+				\vdots \\
+				0      \\
+				-1     \\
+				\mathbf{0}_{n_B}
+			\end{bmatrix}
+		\right),
+		\quad
+		\text{Eig}_{\lambda_B} = \text{span}\left(
+		\begin{bmatrix}
+				\mathbf{0}_{n_A} \\
+				1                \\
+				-1               \\
+				0                \\
+				\vdots           \\
+				0
+			\end{bmatrix},
+		\dots,
+		\begin{bmatrix}
+				\mathbf{0}_{n_{A}} \\
+				1                  \\
+				0                  \\
+				\vdots             \\
+				0                  \\
+				-1
+			\end{bmatrix}
+		\right),  \\
+		\text{Eig}_{\lambda_{\text{neg}}} = &\text{span}\left(
+		\begin{bmatrix}
+				n_B    \\
+				\vdots \\
+				n_B    \\
+				-n_A   \\
+				\vdots \\
+				-n_A
+			\end{bmatrix}
+		\right), \quad
+		\text{Eig}_{\lambda_0} = \text{span}\left(
+		\begin{bmatrix}
+				1      \\
+				\vdots \\
+				1
+			\end{bmatrix}
+		\right)
+	\end{split}
+\end{align}
+and hence geometric multiplicities $n_A -1, n_B -1, 1$ and $1$, respectively. Let
+$$
+	P = \left[\begin{array}{@{}c|c|c|c@{}}
+			P_{11}
+			         & \bigzero
+			         & \begin{matrix}
+				           n_B/\sqrt{n_A^2 n_B + n_A n_B^2} \\
+				           \vdots                           \\
+				           n_B/\sqrt{n_A^2 n_B + n_A n_B^2}
+			           \end{matrix}
+			         &
+			\begin{matrix}
+				1/\sqrt{n} \\
+				\vdots     \\
+				1/\sqrt{n}
+			\end{matrix}                                \\
+			\hline
+			\bigzero &
+			P_{22}
+			         & \begin{matrix}
+				           -n_A/\sqrt{n_A^2 n_B + n_A n_B^2} \\
+				           \vdots                            \\
+				           -n_A/\sqrt{n_A^2 n_B + n_A n_B^2}
+			           \end{matrix}
+			         & \begin{matrix}
+				           1/\sqrt{n} \\
+				           \vdots     \\
+				           1/\sqrt{n}
+			           \end{matrix}
+		\end{array}\right],
+$$
+where $P_{11}$ ($P_{22}$) is an $n_A \times n_A -1$ ($n_B \times n_B -1$) matrix obtained by applying the Gram-Schmidt orthogonalization to the first $n_A$ (last $n_B$) components of the vectors spanning $\text{Eig}_{\lambda_A}$ ($\text{Eig}_{\lambda_B}$) from \eqref{eq:Eigenspaces} above.
+
+By Mathai, Provost, "Quadratic forms in random variables", page 29, formula (3.1a.4), it follows that
+\begin{align}
+	\begin{split}\label{eq:Z_law}
+		Z_r = &Y^T Q_r Y \\
+		\eqdis &\sigma^2 \left(
+		\lambda_A^r \sum_{i=1}^{n_A - 1} (U_i + b_i)^2
+		+ \lambda_B^r \sum_{i= n_A}^{n -2} (U_i + b_i)^2
+		+ \lambda_{\text{neg}}^r (U_{n-1} + b_{n-1})^2
+		\right).
+		%\\
+		%\eqdis &\frac{\sigma^2}{n-1} \left( 
+		%\frac{2 n_B}{n_A -1} \chi^2_A(n_A -1, \xi_A)
+		%+ \frac{2 n_A}{n_B -1} \chi^2_B(n_B -1, \xi_B)
+		%- (n+1) \chi^2(1, b_{n-1}^2)
+		%\right)
+	\end{split}
+\end{align}
+Here, $U_1, \dots, U_{n-1}$ are iid standard normally distributed and, with 
+$$
+\bar \mu^T = (\bar \mu_A^T, \bar \mu_B^T)^T := \left(\mu(x_1), \dots, \mu(x_{n_A}),\mu(x_{n_A + 1}), \dots, \mu(x_n)\right)^T,
+$$
+$$
+	b = \frac{1}{\sigma}P^T \bar \mu =
+	\frac{1}{\sigma}\begin{bmatrix}
+		P_{11}^T \bar \mu_A                                                                                      \\
+		P_{22}^T \bar \mu_B                                                                                      \\
+		\left(n_B \sum_{i=1}^{n_A} \bar \mu_i - n_A \sum_{i=n_A + 1}^n \bar \mu_i\right)/\sqrt{n_A^2 n_B + n_A n_B^2} \\
+		\left(\sum_{i=1}^n \bar \mu_i \right)/\sqrt{n}
+	\end{bmatrix}.
+$$
+\paragraph{Non-central Chi-square}
+Let $X_1, \dots, X_m$ independent normally distributed random variables with means $a_1, \dots, a_m$ and unit variances and set $\xi = \sum_{i=1}^m a_i^2$ (non-centrality parameter). Then, $\sum_{i = 1}^m X_i^2$ follows a non-central chi-squared distribution with $m$ degrees of freedom and is denoted by $\chi^2_m(\xi)$.
+
+We would like to express \eqref{eq:Z_law} in terms of a linear combination of independent non-central chi-squares. For this purpose, we compute
+$$
+	\xi_A = \sum_{i=1}^{n_A -1} b_i^2, \quad \xi_B = \sum_{i=n_A}^{n-2} b_i^2, \text{ and } \quad \xi_{\text{neg}} = b_{n-1}^2.
+$$
+Denote by $\tilde P_{11}^T$ the orthogonal $n_A \times n_A$ matrix obtained by adding $(1/\sqrt{n_A}, \dots, 1/\sqrt{n_A}) \in \R^{n_A}$  as an additional row to $P_{11}^T$. We then get
+\begin{align*}
+	\xi_A  = \sum_{i=1}^{n_A -1} b_i^2 =
+	  & \frac{1}{\sigma^2} \left(\sum_{i=1}^{n_A} \left(\left(\tilde P_{11}^T \bar \mu_A \right)_i \right)^2 - |(1/\sqrt{n_A}, \dots, 1/\sqrt{n_A}) \mu_A|^2 \right) \\
+	= & \frac{1}{\sigma^2} \left(\sum_{i=1}^{n_A} \bar \mu_i^2 - \frac{1}{n_A} \left(\sum_{i=1}^{n_A} \bar \mu_i \right)^2 \right),
+\end{align*}
+where we have used the orthogonality of $\tilde P_{11}$ in the last equality. Similarly, one gets
+$$
+	\xi_B = \frac{1}{\sigma^2} \left(\sum_{i=n_A}^{n-2} \mu_i^2 - \frac{1}{n_B} \left(\sum_{i=n_A}^{n-2} \mu_i \right)^2 \right)
+$$
+and
+$$
+	\xi_{\text{neg}} = \frac{\left(n_B \sum_{i=1}^{n_A} \mu_i - n_A \sum_{i=n_A + 1}^n \mu_i \right)^2}{\sigma^2\left(n_A^2 n_B + n_A n_B^2\right)}.
+$$
+Altogether, we can rewrite \eqref{eq:Z_law} to get
+\begin{align}\label{eq:Z_law2}
+	Z_r \eqdis
+	 & \sigma^2 \left(
+	\lambda_{A}^r \chi^2_{n_A -1}(\xi_A)
+	+ \lambda_{B}^r \tilde \chi^2_{n_B -1}(\xi_B)
+	+ \lambda_{\text{neg}}^r \bar \chi_1^2(\xi_{\text{neg}})
+	\right),
+\end{align}
+where $\chi^2_{n_A -1}(\xi_A), \tilde \chi^2_{n_B -1}(\xi_B)$ and $\bar \chi_1^2(\xi_{\text{neg}})$ are independent.
+
+Under $H_0$, $\bar \mu = (c, \dots, c)^T$ for some $c \in \R$. This implies that $\xi_A = \xi_B = \xi_{\text{neg}} = 0$, which is equivalent to $b=0$. It then follows that 
+\begin{align}\label{eq:Z_law3}
+	Z_r \eqdis
+	 & \sigma^2 \left(
+	\lambda_{A}^r \chi^2_{n_A -1}
+	+ \lambda_{B}^r \tilde \chi^2_{n_B -1}
+	+ \lambda_{\text{neg}}^r \bar \chi_1^2
+	\right),
+\end{align}
+where all chi-squares are central and independent. Denoting the random variable in brackets by $Z_r^1$, this means that, under $H_0$,
+$$
+F_R^0(r) = \P_0(Z_r \leq 0) = \P_0(Z_r^1 \leq 0).
+$$
+
+
+\end{proof}
+
 \begin{proof}[Proof of Lemma \ref{lem:large_sample}]
-Let $n \to \infty$ and assume that $n_A /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. We first want to investigate the weak limit of $Z_{r}$ under $H_0$, i.e. the limit of 
+Let $n \to \infty$ and assume that $n_A /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. We first want to investigate the weak limit of $Z_r^1$ under $H_0$, i.e. the limit of 
 \begin{align}\label{eq:Z_lim}
 \tilde \lambda_A^r \frac{\chi_{n_A - 1}}{n_A - 1} + \tilde \lambda_B^r \frac{\tilde \chi_{n_B - 1}}{n_B - 1} + \lambda_{\text{neg}}^r \bar \chi_{1},
 \end{align}
@@ -283,16 +547,16 @@ and similarly
 \end{align*}
 Hence, under $H_0$, we get convergence in distribution by the Slutzky Theorem
 \begin{align*}
-Z_{r} \to Z_{r}^\infty := 
+Z_r^1 \to Z_r^{1,\infty} := 
 \begin{cases}
 2 - \bar \chi_{1}, & r=1 \\
 - \infty, & r >1 \\
 + \infty, & r <1.
 \end{cases}
 \end{align*}
-Since $Z_{r}^\infty$ has no mass at $0$ for any $r > 0$, this implies that 
+Since $Z_{r}^{1,\infty}$ has no mass at $0$ for any $r > 0$, this implies that 
 \begin{align*}
-F_R^0(r) = \P_0(Z_{r} \leq 0) \to \P_0(Z_{r}^{\infty} \leq 0) = 
+F_R^0(r) = \P_0(Z_r^1 \leq 0) \to \P_0(Z_r^{1, \infty} \leq 0) = 
 \begin{cases}
 \P(\bar \chi_{1} \geq 2), & r=1 \\
 1, & r >1 \\
