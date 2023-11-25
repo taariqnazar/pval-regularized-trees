@@ -43,7 +43,7 @@ class StatisticalRT(DecisionTreeRegressor):
         pvals = -1*np.ones(shape=n_nodes, dtype=np.float64) # P-values based on rations per node
         reduction = np.nan*np.ones(shape=n_nodes, dtype=np.float64) # the absolute reduction of total mse if split is made in node
         # The reduction enables us to decide the split sequence
-        a
+
         while len(stack) > 0:
             # `pop` ensures each node is only visited once
             node_id, depth = stack.pop()
@@ -94,8 +94,8 @@ class StatisticalRT(DecisionTreeRegressor):
             else:
                 is_leaves[node_id] = True
 
-        splitting_sequence = np.argsort(reduction)[:-np.sum(np.isnan(reduction))] # order and remove the leaf indices, LEAF=NAN
-        return pvals, splitting_sequence, ratios
+        #splitting_sequence = np.argsort(reduction)[:-np.sum(np.isnan(reduction))] # order and remove the leaf indices, LEAF=NAN! FALSE!
+        return pvals, ratios
 
 if __name__ == '__main__':
     
