@@ -8,14 +8,23 @@ class StatisticalRT(DecisionTreeRegressor):
     Same as DecisionTreeRegressor but with extra methods. 
     """
 
-    def get_significant_tree(self, significance):
+    # Store ccp_alphas when training
+    #def fit():
+    # self.ccp_alphas = ...
+    #    pass
+
+    def get_table(self, significance):
         """
-        returns Tree and Significance of tree 
+        returns significance and Significance of tree 
         """
-        pass
+        pvals, splitting_sequence, _ = self._get_metrics()
+        alphas = np.cumsum(pvals[splitting_sequence])
+
+        # Fix below, analyse what significance corresponds to alpha, right now there is a lenght missmatch
+        return {"significance":alphas, "cost-complexity":self.ccp_alphas[::-1]}
 
     
-    def get_pvalues(self):
+    def _get_metrics(self):
         """
         Retrieves P-values for all split nodes of the tree 
         """
@@ -30,9 +39,11 @@ class StatisticalRT(DecisionTreeRegressor):
         stack = [(0, 0)]  # start with the root node id (0) and its depth (0)
 
         # Populate values
-        ratios = -1*np.ones(shape=n_nodes, dtype=np.float64)
-        pvals = -1*np.ones(shape=n_nodes, dtype=np.float64)
-        
+        ratios = -1*np.ones(shape=n_nodes, dtype=np.float64) # Ratio drop of making split per node
+        pvals = -1*np.ones(shape=n_nodes, dtype=np.float64) # P-values based on rations per node
+        reduction = np.nan*np.ones(shape=n_nodes, dtype=np.float64) # the absolute reduction of total mse if split is made in node
+        # The reduction enables us to decide the split sequence
+        a
         while len(stack) > 0:
             # `pop` ensures each node is only visited once
             node_id, depth = stack.pop()
@@ -56,7 +67,10 @@ class StatisticalRT(DecisionTreeRegressor):
                 n_left = sample_size[children_left[node_id]]
                 n_right = sample_size[children_right[node_id]]
 
-                # Make var unbiased
+                red = (n_left*mse_left + n_right*mse_right - n*mse)/10 # DIVISOR WRONG!!! MUST BE LENGHT OF FITTING DATASET, OK to get split sequence 
+                reduction[node_id] = red
+
+                # Make the Variance unbiased
                 mse *= n/(n-1)
                 mse_left *= n_left/(n_left-1)
                 mse_right *= n_right/(n_right-1) 
@@ -80,7 +94,8 @@ class StatisticalRT(DecisionTreeRegressor):
             else:
                 is_leaves[node_id] = True
 
-        return pvals
+        splitting_sequence = np.argsort(reduction)[:-np.sum(np.isnan(reduction))] # order and remove the leaf indices, LEAF=NAN
+        return pvals, splitting_sequence, ratios
 
 if __name__ == '__main__':
     
