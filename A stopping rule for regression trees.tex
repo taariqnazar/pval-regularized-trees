@@ -191,9 +191,17 @@ Choosing the same estimators as in \eqref{eq:par_estimators}, this approach henc
 
 
 \subsection{Signal/No-signal hypothesis testing}
+Ideally, one should stop splitting once the generalization error increases for the first time, i.e. when condition \eqref{eq:stop_criterion} is satisfied. However, since the true values $\sigma^2_{D_j}, \pi_{A_j \mid D_j}$ and $\pi_{B_j \mid D_j}$ are unknown, we have to use the estimators in \eqref{eq:par_estimators}, and the resulting criterion $R_j > 1$ is subject to randomness in the estimators $\hat \sigma^2_{D_j}$ and $\hat \pi_{A_j \mid D_j}, \hat \pi_{B_j \mid D_j}$. For this reason, our approach is to carry out a sequence of hypotheses tests. More formally, for each potential splitting node, we let
+\begin{align}
+H^j_0 \colon \mu(x_i) = c \text{ for all } x_i \in D_j \text{ and some } c \in \R.
+\end{align}
+The interpretation of $H_0^j$ is that the true regression function is flat on $D_j$, meaning that there is no signal left on $D_j$ and no further split should be made. Denote by $F^0_{R_j}$ the distribution function of the stopping test statistic $R_j$, given $H_0^j$ holds true (cf. section \ref{sec:null_dist}). Then, letting $r_j$ be a true realization of $R_j$,
+$
+F_{R_j}^0(r_j)
+$
+gives us a $p$-value for $H_0^j$.
 
-
-\subsection{The null distribution}
+\subsection{The null distribution}\label{sec:null_dist}
 For the sake of readibility, we keep node $j$ fixed and drop it from the notation in the following. That is, we write $H_0, R, n, n_{A}, n_{B}$, instead of $H_0^j, R_j, n_{D_j}, n_{A_j}, n_{B_j}$. Let
 $$
 F^0_R(r) = \P_0(R \leq r)
