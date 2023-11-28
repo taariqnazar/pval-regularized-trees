@@ -599,48 +599,48 @@ $$
 \subsection{Efficient computation of $F_R^0(r)$}
 Let like above
 \begin{align}\label{eq:F_R}
-F_R^0(r) = \P_0(R \leq r)
+	F_R^0(r) = \P_0(R \leq r)
 \end{align}
 denote the distribution function of the ratio $R$, given $H_0$ holds true. By the the last section together with [1971, Joseph L. Fleiss, On the Distribution of a Linear Combination of Independent Chi Squares, Corollary and following p.142], \eqref{eq:F_R} is given by
 \begin{align}\label{eq:intExp}
-\P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n_A -1}{2} \right)\Gamma\left(\frac{n_B -1}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_D (1-x-y)^{\frac{n_A -1}{2} - 1} x^{\frac{n_B -1}{2} - 1} y^{\frac{1}{2} - 1} dx dy,
+	\P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n_A -1}{2} \right)\Gamma\left(\frac{n_B -1}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_D (1-x-y)^{\frac{n_A -1}{2} - 1} x^{\frac{n_B -1}{2} - 1} y^{\frac{1}{2} - 1} dx dy,
 \end{align}
-where 
+where
 $$
-D = \{(x, y) \in [0, 1]^2 \colon x + y \leq 1, \lambda_A^r(1-x-y) + \lambda_B^r x + \lambda_{\text{neg}}^r y \leq 0\}.
+	D = \{(x, y) \in [0, 1]^2 \colon x + y \leq 1, \lambda_A^r(1-x-y) + \lambda_B^r x + \lambda_{\text{neg}}^r y \leq 0\}.
 $$
 The integral can thus be written as
 $$
-\int_0^1 \int_0^{u(y)} (1-x-y)^{\frac{n_A -3}{2} } x^{\frac{n_B -3}{2} } y^{-\frac{1}{2} } dx dy,
+	\int_0^1 \int_0^{u(y)} (1-x-y)^{\frac{n_A -3}{2} } x^{\frac{n_B -3}{2} } y^{-\frac{1}{2} } dx dy,
 $$
-where $u(y) = \max\left(\min\left(1 - y, - \frac{\lambda_A^r + y(\lambda_{\text{neg}}^r - \lambda_A^r)}{\lambda_{B}^r - \lambda_A^r}\right), 0 \right)$, in the case where $\lambda_{B}^r - \lambda_A^r > 0$ (if $\lambda_{B}^r - \lambda_A^r < 0$, change the roles of $A$ and $B$). If $\lambda_A^r = \lambda_B^r$, then  
+where $u(y) = \max\left(\min\left(1 - y, - \frac{\lambda_A^r + y(\lambda_{\text{neg}}^r - \lambda_A^r)}{\lambda_{B}^r - \lambda_A^r}\right), 0 \right)$, in the case where $\lambda_{B}^r - \lambda_A^r > 0$ (if $\lambda_{B}^r - \lambda_A^r < 0$, change the roles of $A$ and $B$). If $\lambda_A^r = \lambda_B^r$, then
 \begin{align}\label{eq:intExp2}
-\P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n -2}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_0^u (1-x)^{\frac{n -4}{2} }  x^{-\frac{1}{2}} dx,
+	\P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n -2}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_0^u (1-x)^{\frac{n -4}{2} }  x^{-\frac{1}{2}} dx,
 \end{align}
 where $u = \max\left(\min\left(1, \frac{\lambda_A^r}{\lambda_A^r - \lambda_{\text{neg}}^r} \right), 0 \right)$, in the case where $\lambda_{\text{neg}}^r- \lambda_A^r > 0$ (otherwise switch the roles of $\lambda_{\text{neg}}^r$ and $\lambda_A^r$).
 
-For $n \approx 350$ and larger, the computation of the integrals in \eqref{eq:intExp} and \eqref{eq:intExp2} become numerically unstable. However, this does not seem to be problematic since for such large values of $n$, the distribution  of $R$ under $H_0$ is close to a point mass at $1$ (cf. Figure \ref{fig:F_R}). 
+For $n \approx 350$ and larger, the computation of the integrals in \eqref{eq:intExp} and \eqref{eq:intExp2} become numerically unstable. However, this does not seem to be problematic since for such large values of $n$, the distribution  of $R$ under $H_0$ is close to a point mass at $1$ (cf. Figure \ref{fig:F_R}).
 
 %\begin{figure}[h]
 %\includegraphics[scale=1]{./Figures/F_R.png}
 %\end{figure}
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=.5\textwidth]{./Figures/10_13_F_R.png}\hfill
-\includegraphics[width=.5\textwidth]{./Figures/160_170_F_R.png}\hfill
-\caption{$F_R^0(r)$ for $(n_A, n_B) = (10, 13)$ and $(n_A, n_B) = (160, 170)$.}
-\label{fig:F_R}
+	\centering
+	\includegraphics[width=.5\textwidth]{./Figures/10_13_F_R.png}\hfill
+	\includegraphics[width=.5\textwidth]{./Figures/160_170_F_R.png}\hfill
+	\caption{$F_R^0(r)$ for $(n_A, n_B) = (10, 13)$ and $(n_A, n_B) = (160, 170)$.}
+	\label{fig:F_R}
 \end{figure}
 
 Figure \ref{fig:F_R_2} shows how the distributions change when $n_A, n_B$ vary while $n$ is fixed. It seems that low quantiles are not much affected by unbalancedness of $(n_A, n_B)$.
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=.5\textwidth]{./Figures/50_50_F_R.png}\hfill
-\includegraphics[width=.5\textwidth]{./Figures/95_5_F_R.png}\hfill
-\caption{$F_R^0(r)$ for $(n_A, n_B) = (50, 50)$ and $(n_A, n_B) = (95, 5)$.}
-\label{fig:F_R_2}
+	\centering
+	\includegraphics[width=.5\textwidth]{./Figures/50_50_F_R.png}\hfill
+	\includegraphics[width=.5\textwidth]{./Figures/95_5_F_R.png}\hfill
+	\caption{$F_R^0(r)$ for $(n_A, n_B) = (50, 50)$ and $(n_A, n_B) = (95, 5)$.}
+	\label{fig:F_R_2}
 \end{figure}
 
 \subsection{Likelihood ratio test idea -- not promising}
@@ -699,55 +699,58 @@ Can we say something about this? Check that this is actually true.
 
 
 \paragraph{Limit update (I think we were wrong about this the last time...)}
-Let $n \to \infty$ and assume that $n_A /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. We want to investigate the weak limit of $Z_{r, 1}$ under $H_0$, i.e. the limit of 
+Let $n \to \infty$ and assume that $n_A /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. We want to investigate the weak limit of $Z_{r, 1}$ under $H_0$, i.e. the limit of
 \begin{align}\label{eq:Z_lim}
-\tilde \lambda_A^r \frac{\chi_{n_A - 1}}{n_A - 1} + \tilde \lambda_B^r \frac{\tilde \chi_{n_B - 1}}{n_B - 1} + \lambda_{\text{neg}}^r \bar \chi_{1},
+	\tilde \lambda_A^r \frac{\chi_{n_A - 1}}{n_A - 1} + \tilde \lambda_B^r \frac{\tilde \chi_{n_B - 1}}{n_B - 1} + \lambda_{\text{neg}}^r \bar \chi_{1},
 \end{align}
-where all chi-squares are independent and 
+where all chi-squares are independent and
 \begin{align*}
-\tilde \lambda_A^r = &\frac{(n_A + 1)(n-1) - r(n+1)(n_A-1)}{n-1}, \\
-\tilde \lambda_B^r = &\frac{(n_B + 1)(n-1) - r(n+1)(n_B-1)}{n-1}, \quad \lambda_{\text{neg}}^r = -r \frac{n+1}{n-1}.
+	\tilde \lambda_A^r = & \frac{(n_A + 1)(n-1) - r(n+1)(n_A-1)}{n-1},                                                    \\
+	\tilde \lambda_B^r = & \frac{(n_B + 1)(n-1) - r(n+1)(n_B-1)}{n-1}, \quad \lambda_{\text{neg}}^r = -r \frac{n+1}{n-1}.
 \end{align*}
 The first two standardised chi-squares in \eqref{eq:Z_lim} each converge to $1$ in probability. Moreover,
 \begin{align*}
-&\lambda_{\text{neg}}^r \to - r, \\
-&\tilde \lambda_A^r = \frac{2 n_B}{n-1} + \frac{(1-r)(n+1)(n_A - 1)}{n-1}
-\to 
-\begin{cases}
-2(1-a), & r=1 \\
-- \infty, & r >1 \\
-+ \infty, & r <1
-\end{cases}
+	 & \lambda_{\text{neg}}^r \to - r,                                          \\
+	 & \tilde \lambda_A^r = \frac{2 n_B}{n-1} + \frac{(1-r)(n+1)(n_A - 1)}{n-1}
+	\to
+	\begin{cases}
+		2(1-a),   & r=1  \\
+		- \infty, & r >1 \\
+		+ \infty, & r <1
+	\end{cases}
 \end{align*}
 and similarly
 \begin{align*}
-\tilde \lambda_B^r 
-\to 
-\begin{cases}
-2a, & r=1 \\
-- \infty, & r >1 \\
-+ \infty, & r <1.
-\end{cases}
+	\tilde \lambda_B^r
+	\to
+	\begin{cases}
+		2a,       & r=1   \\
+		- \infty, & r >1  \\
+		+ \infty, & r <1.
+	\end{cases}
 \end{align*}
 Hence, under $H_0$, we get convergence in distribution by the Slutzky Theorem
 \begin{align*}
-Z_{r, 1} \to Z_{r, 1}^\infty = 
-\begin{cases}
-2 - \bar \chi_{1}, & r=1 \\
-- \infty, & r >1 \\
-+ \infty, & r <1.
-\end{cases}
+	Z_{r, 1} \to Z_{r, 1}^\infty =
+	\begin{cases}
+		2 - \bar \chi_{1}, & r=1   \\
+		- \infty,          & r >1  \\
+		+ \infty,          & r <1.
+	\end{cases}
 \end{align*}
-Since $Z_{r, 1}^\infty$ has no mass at $0$ for any $r > 0$, this implies that 
+Since $Z_{r, 1}^\infty$ has no mass at $0$ for any $r > 0$, this implies that
 \begin{align*}
-F_R^0(r) = \P_0(Z_{r, 1} \leq 0) \to \P_0(Z_{r, 1}^{\infty} \leq 0) = 
-\begin{cases}
-\P(\bar \chi_{1} \geq 2), & r=1 \\
-1, & r >1 \\
-0, & r <1.
-\end{cases}
+	F_R^0(r) = \P_0(Z_{r, 1} \leq 0) \to \P_0(Z_{r, 1}^{\infty} \leq 0) =
+	\begin{cases}
+		\P(\bar \chi_{1} \geq 2), & r=1   \\
+		1,                        & r >1  \\
+		0,                        & r <1.
+	\end{cases}
 \end{align*}
 This shows that the ratio $R$ converges in probability to $1$ under $H_0$. This is in line with the numerical results in Figure \ref{fig:F_R}. Note that the limit does not depend on $a$.
+
+
+
 
 
 
