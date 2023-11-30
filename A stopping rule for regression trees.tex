@@ -228,6 +228,16 @@ be the distribution function of the stopping test statistic $R$ from \eqref{eq:R
 	and $\chi^2_{n_A -1}$, $\tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$ are independent chi-squared distributed random variables with $n_A - 1, n_B -1$ and $1$ degrees of freedeom, respectively.
 \end{lemma}
 
+Using the Gil-Pelaez formula, we can compute $F_R^0(r)$ efficiently via
+\begin{align*}
+\P_0(Z_r^1 \leq 0) = \frac{1}{2} - \frac{1}{\pi} \int_{\R^+} \frac{\text{Im}(\phi_{Z_r^1}(t))}{t} dt,
+\end{align*}
+where 
+\begin{align*}
+\phi_{Z_r^1}(t) = (1 - 2 \lambda_A^r i t)^{-\frac{n_A - 1}{2}}(1 - 2 \lambda_B^r i t)^{-\frac{n_B - 1}{2}}(1 - 2 \lambda_{\text{neg}}^r  i t)^{-\frac{1}{2}}
+\end{align*}
+is the characteristic function of $Z_r^1$ under $H_0$.
+
 The next result shows large sample size properties of $R$.
 \begin{lemma}[Large sample size]\label{lem:large_sample}
 	Let $n \to \infty$ and assume that $n_{A} /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. Then, under $H_0$, $R$ converges to $1$ in probability.
