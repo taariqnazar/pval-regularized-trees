@@ -41,7 +41,7 @@ def chi_sq_dist(x, K_acc, df, coffs):
 	return b[1]*b[2]*sum([a[k]*g[k] for k in range(K_acc)])
 
 
-def chi_sq_cdf(x, dfs, coffs):
+def chi_sq_cdf(dfs, coffs):
 	if(dfs[0] == dfs[1]):
 		dfs = [dfs[0] + dfs[1], 1]
 		coffs = [coffs[0], coffs[2]]
@@ -76,25 +76,66 @@ def chi_sq_cdf_test(x,dfs, coffs, N):
 def F(r, n_A, n_B):
 	dfs = [n_A - 1, n_B - 1, 1]
 	coffs = [((n_A + 1)*(n-1) - r*(n+1)*(n_A -1))/(n_A - 1), ((n_B + 1)*(n-1) - r*(n+1)*(n_B -1))/(n_B - 1), - r*(n + 1)]
-	return chi_sq_cdf(0, dfs, coffs)[0]
+	return chi_sq_cdf(dfs, coffs)[0]
 
 
+# instable if r is not close to 1...
+def compute_p_value(n_A, n_B, r):
+	if n_A < 2 or n_B < 2:
+		raise ValueError('There must be at least two data point in each region.')
+	n = n_A + n_B
+	dfs = [n_A - 1, n_B - 1, 1]
+	coffs = np.array([((n_A + 1)*(n-1) - r*(n+1)*(n_A -1))/(n_A - 1), ((n_B + 1)*(n-1) - r*(n+1)*(n_B -1))/(n_B - 1), - r*(n + 1)])/(n-1)
+	(p1, p2, p3) = -dfs[0]/2 , -dfs[1]/2, -dfs[2]/2
+	(a1, a2, a3) = coffs[0], coffs[1], coffs[2]
+	phi = lambda t: ((1 - 2*a1*1j*t)**p1)*((1 - 2*a2*1j*t)**p2)*((1 - 2*a3*1j*t)**p3)
+	integrand = lambda t: np.imag(phi(t))/t
+	(integral, error) = quad(integrand, 0, float("inf"))
+	p_val = 1/2 - integral/np.pi
+	#print(p_val, error)
+	#print(error/p_val)
+	if p_val == 0:
+		return 0
+	rel_error = error/p_val
+	if rel_error > 1/100:
+		if r == 1:
+			return 0.1573
+		if r > 1:
+			return 1
+		if r < 1:
+			return 0
+	return max(p_val, 0)
+
+def compute_p_value_old(n_A, n_B, r, N = 100000):
+	if n_A < 3 or n_B < 3:
+		raise ValueError('There must be at least three data point in each region.')
+	if n_A + n_B > 3000:
+		if r == 1:
+			return 0.1573
+		if r < 1:
+			return 0
+		if r > 1:
+			return 1
+	if 320 < n_A + n_B <= 3000:
+		return chi_sq_cdf_sim(n_A, n_B, r, N)
+	return chi_sq_cdf(n_A, n_B, r)[0]
 
 
 x = 0
-r = 1
-n_A, n_B = (50, 50)
+r = .5
+n_A, n_B = (500000, 500100)
 n = n_A + n_B
 dfs = [n_A - 1, n_B - 1, 1]
 coffs = [((n_A + 1)*(n-1) - r*(n+1)*(n_A -1))/(n_A - 1), ((n_B + 1)*(n-1) - r*(n+1)*(n_B -1))/(n_B - 1), - r*(n + 1)]
+
 
 #print(chi_sq_cdf(x, dfs, coffs))
 
 #print('Simulated:')
 #print(chi_sq_cdf_test(x, dfs, coffs, 1000000))
 
-axis = np.arange(0.9, 1.1, 0.0001)
-Fs = [F(r, n_A, n_B) for r in axis]
+axis = np.arange(0.01, 2, 0.01)
+Fs = [compute_p_value(n_A, n_B, r) for r in axis]
 plt.plot(axis, Fs)
 plt.show()
 
