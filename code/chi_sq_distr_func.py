@@ -57,11 +57,9 @@ def compute_p_value(n_A, n_B, r):
 	integrand = lambda t: np.imag(phi(t))/t
 	(integral, error) = quad(integrand, 0, float("inf"))
 	p_val = 1/2 - integral/np.pi
-	print(p_val, error)
 	if p_val == 0:
 		return 0
 	rel_error = abs(error/p_val)
-	print(rel_error)
 	if rel_error > 1/10:
 		if r == 1:
 			return 0.1573
@@ -72,8 +70,8 @@ def compute_p_value(n_A, n_B, r):
 	return max(p_val, 0)
 
 
-r = 3
-n_A, n_B = (5500, 5501)
+r = .99
+n_A, n_B = (500, 501)
 #print(compute_p_value(n_A,n_B, r))
 
 t1 = time.time()
