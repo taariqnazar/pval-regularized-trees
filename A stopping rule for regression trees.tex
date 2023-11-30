@@ -281,7 +281,7 @@ In Sklearn, the regression tree has a method called \textbf{decision path} that
 returns, the path of a datapoint in the form of a matrix, where the entry $ m \times
 	t $ is non-zero if datapoint $ m $ passes through node $ t $. From this, we can
 pinpoint the leaf of each node by looking at the index of each non-zero entry.
-To calculate the cost-complexities, we need to recalculate the alpha_eff after
+To calculate the cost-complexities, we need to recalculate the alpha eff after
 each prune.
 
 Nils suggested that, we look at single node reduction at each step. That is, we
