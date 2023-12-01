@@ -101,71 +101,75 @@
 
 \section{An iterative stopping test statistic}\label{sec:test_stat}
 
-Consider a random covariate-response pair $(X, Y)$ taking values in $\R^{d} \times \R$. Assume fixed covariate trainings data $x_1, \dots, x_N$ and iid trainings-response-data $Y_1, \dots, Y_N $ satisfying
+Consider iid trainingsdata $(X, Y), (X_i, Y_i)_{i=1}^N$ taking values in $\R^{d} \times \R$ and satisfying 
 $$
-	\calL(Y_i) = \calL\left(Y \mid X = x_i \right)  = \Normal(\mu(x_i), \sigma^2)
+\calL\left(Y \mid X \right)  = \Normal(\mu(X), \sigma^2)
 $$
-for an unknown regression function $\mu \colon \R^d \to \R$ and unknown $\sigma^2 > 0$. Let $(X^*, Y^*)$ be iid with respect to $(X, Y)$ and independent of $(Y_i)_{i=1}^N$.
+for an unknown regression function $\mu \colon \R^d \to \R$ and unknown $\sigma^2 > 0$. Let $(X^*, Y^*)$ be iid with respect to $(X, Y)$.
 
 \subsection{Motivation}
 
 Suppose we have a disjoint partition $ \bigcup_{j=1}^J D_j = \R^d$ and a tree regressor
 \begin{align}\label{eq:mu_hat_0}
-	\hat \mu_0(x) = \hat \mu_0(x, (x_i, Y_i)_{i=1}^N) = \sum_{j=1}^J I\{x \in D_j\} \hat m_j,
+\hat \mu_0(x) = \hat \mu_0(x, (X_i, Y_i)_{i=1}^N) = \sum_{j=1}^J I\{x \in D_j\} \hat m_j,
 \end{align}
-where $\hat m_j = \frac{1}{n_{D_j}} \sum_{i = 1}^{N} Y_i I\{x_i \in D_j\}$ with $n_{D_j} = |\{i \colon x_i \in D_j  \}|$.
-%Here, we have assumed without loss of generality that $x_1, \dots, x_{n_{D_j}} \in D_1, x_{n_1 + 1}, \dots, x_{n_{D_j}} \in D_2$ etc. 
+where $\hat m_j = \frac{1}{n_{D_j}} \sum_{i = 1}^{N} Y_i I\{X_i \in D_j\}$ with $n_{D_j} = |\{i \colon X_i \in D_j  \}|$. 
 Let
 \begin{align*}
-	\mu_{D_j} = \E[Y \mid X \in D_j ], \quad \sigma^2_{D_j} = \E[(Y-\mu_{D_j})^2 \mid X \in D_j]
-	= \Var(Y \mid X \in D_j).
+\mu_{D_j} = \E[Y \mid X \in D_j ], \quad \sigma^2_{D_j} = \E[(Y-\mu_{D_j})^2 \mid X \in D_j]
+= \Var(Y \mid X \in D_j).
+ \end{align*}
+ Note that $\hat \mu_0(x)$ is a random variable since it is a function of the trainingsdata. Denote by 
+ $$
+ \MSEP^0_j = \E \left[
+\left(Y^* - \hat \mu_0(X^*)\right)^2 \mid   X^* \in D_j, n_{D_j}
+ \right] 
+ $$ 
+ the generalization error of the predictor $\hat \mu_0$, given region $D_j$ and given there are $n_{D_j}$ trainings-datapoints in region $D_j$.
+\begin{lemma}\label{lem:MSEP_0}
+Then,
+\begin{align*}
+\MSEP^0_j =  \sigma_{D_j}^2\left(1 + \frac{1}{n_{D_j}}\right). 
 \end{align*}
-Note that $\hat \mu(x)$ is a random variable since it is a function of the trainings-responses $(Y_i)_{i=1}^N$. Denote by
-$$
-	\MSEP^0_j = \E \left[
-		\left(Y^* - \hat \mu_0(X^*)\right)^2 \mid X^* \in D_j
-		\right]
-$$
-the generalization error of the predictor $\hat \mu_0$, given region $D_j$.
-\begin{lemma}\label{lem:mot1}
-	Then,
-	\begin{align*}
-		\MSEP^0_j =  \sigma_{D_j}^2\left(1 + \frac{1}{n_{D_j}}\right).
-	\end{align*}
 \end{lemma}
 
-Fix a region $j$ and let $A_j \dot \cup B_j = D_j$ be a split at the terminal node $j$. Let $\hat \mu_1$ be defined as in \eqref{eq:mu_hat_0}, but with $J+1$ regions after splitting node $j$. As above, define the generalization error of $\hat \mu_1$, given $D_j$,
-$$
-	\MSEP^1_j = \E \left[
-		\left(Y^* - \hat \mu_1(X^*)\right)^2 \mid X^* \in D_j
-		\right].
-$$
+Fix a region $j$ and let $A_j \dot \cup B_j = D_j$ be a split at the terminal node $j$. Let $\hat \mu_1$ be defined as in \eqref{eq:mu_hat_0}, but with $J+1$ regions after splitting node $j$. We let 
+ $$
+ \MSEP^1_j = \E \left[
+\left(Y^* - \hat \mu_1(X^*)\right)^2 \mid X^* \in D_j, n_{A_j},  n_{B_j}
+ \right]
+ $$ 
+be the generalization error of $\hat \mu_1$, given $D_j$ and given there are $n_{A_j}$ and $n_{B_j}$ trainings-datapoints in $A_j$ and $B_j$, respectively.
 
 \begin{lemma}\label{lem:MSEP1}
-	Then,
-	\begin{align*}
-		\MSEP^1_j = \sigma_{A_j}^2\left(1 + \frac{1}{n_{A_j}}\right)\pi_{A_j \mid D_j} + \sigma_{B_j}^2\left(1 + \frac{1}{n_{B_j}}\right)\pi_{B_j \mid D_j},
-	\end{align*}
-	where $\pi_{A_j\mid D_j} = \P(X \in A_j \mid X \in D_j)$ and analogous for $\pi_{B_j \mid D_j}$.
+Then,
+\begin{align*}
+\MSEP^1_j = \sigma_{A_j}^2\left(1 + \frac{1}{n_{A_j}}\right)\pi_{A_j \mid D_j} + \sigma_{B_j}^2\left(1 + \frac{1}{n_{B_j}}\right)\pi_{B_j \mid D_j},
+\end{align*}
+where $\pi_{A_j\mid D_j} = \P(X \in A_j \mid X \in D_j)$ and analogous for $\pi_{B_j \mid D_j}$.
 \end{lemma}
 
-The split at node $j$ increased the mean squared error of prediction (generalisation error) in region $D_j$, if
+The split at node $j$ increased the mean squared error of prediction (generalisation error) in region $D_j$, if 
 \begin{align}\label{eq:stop_criterion}
-	\MSEP^0_j < \MSEP^1_j.
+\MSEP^0_j < \MSEP^1_j.
 \end{align}
-Estimating the unknown parameters $\sigma_{A_j}^2, \pi_{A_j \mid D_j}$ by the unbiased estimators
+Estimating the unknown parameters $\sigma_{A_j}^2, \pi_{A_j \mid D_j}$ by the unbiased estimators 
 \begin{align}\label{eq:par_estimators}
-	\hat \sigma_{A_j}^2 = \frac{1}{n_{A_j} - 1} \sum_{i \colon x_i \in A_j} (Y_i - \overline Y_{A_j})^2, \quad  \hat \pi_{A_j \mid D_j} = n_{A_j}/n_{D_j},
+\hat \sigma_{A_j}^2 = \frac{1}{n_{A_j} - 1} \sum_{i \colon X_i \in A_j} (Y_i - \overline Y_{A_j})^2, \quad  \hat \pi_{A_j \mid D_j} = n_{A_j}/n_{D_j},
 \end{align}
-where $\overline Y_{A_j} = 1/n_A \sum_{i \colon x_i \in A_j} Y_i$, and similarly for $\sigma_{B_j}^2, \pi_{B_j \mid D_j}$,
+where $\overline Y_{A_j} = 1/n_{A_j} \sum_{i \colon X_i \in A_j} Y_i$, and similarly for $\sigma_{B_j}^2, \pi_{B_j \mid D_j}$,
 this motivates the stopping test statistic
 \begin{align}\label{eq:R_j}
-	R_j = \frac{\widehat \MSEP^1_j}{\widehat \MSEP^0_j} = \frac{(n_{A_j} +1) \hat \sigma^2_{A_j} + (n_{B_j} +1) \hat \sigma^2_{B_j}}{(n_{D_j} +1) \hat \sigma^2_{D_j}}
+R_j = \frac{\widehat \MSEP^1_j}{\widehat \MSEP^0_j} = \frac{(n_{A_j} +1) \hat \sigma^2_{A_j} + (n_{B_j} +1) \hat \sigma^2_{B_j}}{(n_{D_j} +1) \hat \sigma^2_{D_j}}
 \end{align}
-for a split at node $j$. Following \eqref{eq:stop_criterion}, the interpretation of $R_j \gg 1$ is that, with a high probability, the generalization error has increased after splitting.
+for a split at node $j$. Following \eqref{eq:stop_criterion}, the interpretation of $R_j \gg 1$ is that, with a high probability, the local generalization error has increased after splitting.
 
 \subsection{An alternative motivation: Covariance penalties}
-Let $Y_1^*, \dots, Y_N^*$ be independent, independent of $(Y_i)_{i=1}^N$ and satisfying $\calL(Y_i^*) = \calL(Y_i)$ for $i=1, \dots, N$. Here, $(Y_i)_{i=1}^N$ is defined as in the beginning of section \ref{sec:test_stat}. Define the in-sample mean squared error of prediction before and after a split at node $j$ by
+Assume fixed covariate trainings data $x_1, \dots, x_N$ and independent trainings-response-data $Y_1, \dots, Y_N $ satisfying 
+$$
+\calL(Y_i) = \calL\left(Y \mid X = x_i \right)  = \Normal(\mu(x_i), \sigma^2)
+$$
+for an unknown regression function $\mu \colon \R^d \to \R$ and unknown $\sigma^2 > 0$. Let $Y_1^*, \dots, Y_N^*$ be independent, independent of $(Y_i)_{i=1}^N$ and satisfying $\calL(Y_i^*) = \calL(Y_i)$ for $i=1, \dots, N$. Define the in-sample mean squared error of prediction before and after a split at node $j$ by
 \begin{align*}
 	{\MSEPOin}_{,j} = \frac{1}{n_{D_j}} \sum_{i \colon x_i \in D_j} (Y_i^* - \hat \mu_0(x_i))^2, \quad
 	{\MSEPIin}_{,j} = \frac{1}{n_{D_j}} \sum_{i \colon x_i \in D_j} (Y_i^* - \hat \mu_1(x_i))^2.
@@ -193,7 +197,7 @@ Choosing the same estimators as in \eqref{eq:par_estimators}, this approach henc
 \subsection{Signal/No-signal hypothesis testing}
 Ideally, one should stop splitting once the generalization error increases for the first time, i.e. when condition \eqref{eq:stop_criterion} is satisfied. However, since the true values $\sigma^2_{D_j}, \pi_{A_j \mid D_j}$ and $\pi_{B_j \mid D_j}$ are unknown, we have to use the estimators in \eqref{eq:par_estimators}, and the resulting criterion $R_j > 1$ is subject to randomness in the estimators $\hat \sigma^2_{D_j}$ and $\hat \pi_{A_j \mid D_j}, \hat \pi_{B_j \mid D_j}$. For this reason, our approach is to carry out a sequence of hypotheses tests. More formally, for each potential splitting node, we let
 \begin{align}
-	H^j_0 \colon \mu(x_i) = c \text{ for all } x_i \in D_j \text{ and some } c \in \R.
+	H^j_0 \colon \mu_{A_j} = \mu_{B_j} = \mu_{D_j}.
 \end{align}
 The interpretation of $H_0^j$ is that the true regression function is flat on $D_j$, meaning that there is no signal left on $D_j$ and no further split should be made. Denote by $F^0_{R_j}$ the distribution function of the stopping test statistic $R_j$, given $H_0^j$ holds true (cf. section \ref{sec:null_dist}). Then, letting $r_j$ be a true realization of $R_j$,
 $
@@ -302,23 +306,54 @@ or not.
 
 \section{Appendix: Proofs}
 
+\begin{proof}[Proof of Lemma \ref{lem:MSEP_0}]
+Since $\hat \mu_0$ is constant is on $D_j$, we have
+\begin{align*}
+	\MSEP_j^0  = &\E\left[ (Y^* - \mu_{D_j})^2 \mid X^* \in D_j,  n_{D_j} \right] 
+	   + \E \left[ (\mu_{D_j} - \hat\mu_0(X^*))^2 \mid X^* \in D_j, n_{D_j} \right]    \\    
+	   & \quad + 2\E \left[ (Y^* - \mu_{D_j})( \mu_{D_j} - \widehat \mu_0(X^*)) \mid X^* \in D_j,  n_{D_j}  \right]\\           
+	               = &\sigma_{D_j}^2 +
+	\E \left[ \left(\left(\frac{1}{n_{D_j}}\sum_{i =1}^{n_{D_j}} Y_i \right) - \mu_{D_j}  \right)^2 \mid  n_{D_j}, X_1, \dots, X_{n_{D_j}} \in D_j \right] \\
+		               = &\sigma_{D_j}^2 +
+	\frac{1}{n_{D_j}^2}\E \left[ \left(\sum_{i =1}^{n_{D_j}} (Y_i - \mu_{D_j}) \right)^2 \mid  n_{D_j}, X_1, \dots, X_{n_{D_j}} \in D_j  \right] \\
+			               = &\sigma_{D_j}^2 +
+	\frac{1}{n_{D_j}^2}\sum_{i =1}^{n_{D_j}} \E \left[(Y_i - \mu_{D_j})^2 \mid X_i \in D_j \right] \\
+	              = &\sigma_{{D_j}}^2\left(1 + \frac{1}{n_{D_j}} \right).
+\end{align*}
+In the second equality, the mixed term vanishes since, given $X^* \in D_j$, $\hat \mu_0(X^*, (X_i, Y_i)_{i=1}^N) = \hat \mu_0((X_i, Y_i)_{i=1}^N)$ only depends on trainings data and is hence independent of $Y^*$. 
+\end{proof}
+
+\begin{proof}[Proof of Lemma \ref{lem:MSEP1}]
+Conditioning yields
+\begin{align*}
+ \MSEP^1_j  
+ =&\E \left[
+\left(Y^* - \hat \mu_1(X^*)\right)^2 \mid X^* \in A_j, n_{A_j} \right] \P(X^* \in A_j \mid X^* \in D_j ) \\
+ + &\E \left[
+\left(Y^* - \hat \mu_1(X^*)\right)^2 \mid X^* \in B_j,  n_{B_j}
+ \right] \P(X^* \in B_j \mid X^* \in D_j ) \\
+ =&\sigma_{{A_j}}^2\left(1 + \frac{1}{n_{A_j}} \right)\pi_{A_j \mid D_j} + \sigma_{{B_j}}^2\left(1 + \frac{1}{n_{B_j}} \right)\pi_{B_j \mid D_j},
+\end{align*}
+where, in the last equality, we have applied Lemma \ref{lem:MSEP_0} and the fact that $\hat \mu_1$ is constant on $A_j$ and on $B_j$.
+\end{proof}
+
 \begin{proof}[Proof of Lemma \ref{lem:distr_R}]
-	Assume without loss of generality that $x_1, \dots, x_{n_A} \in A$ and $x_{n_A + 1}, \dots, x_n \in B$. We wish to determine the distribution function $F_R^0$ of
+Assume without loss of generality that $X_1, \dots, X_{n_A} \in A$ and $X_{n_A + 1}, \dots, X_n \in B$. We wish to determine the distribution function $F_R^0$ of
 	$$
 		R = \frac{
-			\frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \bar Y_B)^2
+			\frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \overline Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \overline Y_B)^2
 		}{
-			\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \bar Y)^2
+			\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \overline Y)^2
 		}
 	$$
-	under $H_0$, i.e. given that $\E[Y_i] = c$ for all $i$ with $x_i \in D = A \dot \cup B$ for some $c \in \R$. For this purpose, we note that for each $r > 0$,
+	under $H_0$, i.e. given that $\mu_A = \mu_B = \mu_D$. For this purpose, we note that for each $r > 0$,
 	\begin{align*}
 		F_R^0(r) = \P_0(R \leq r) = \P_0(Z_r \leq 0),
 	\end{align*}
 	where
 	\begin{align}\label{eq:Z_r}
-		Z_r = \frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \bar Y_B)^2 - r
-		\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \bar Y)^2.
+		Z_r = \frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \overline Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \overline Y_B)^2 - r
+		\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \overline Y)^2.
 	\end{align}
 	Let
 	\begin{align}
@@ -504,7 +539,7 @@ or not.
 	\end{align}
 	Here, $U_1, \dots, U_{n-1}$ are iid standard normally distributed and, with
 	$$
-		\bar \mu^T = (\bar \mu_A^T, \bar \mu_B^T)^T := \left(\mu(x_1), \dots, \mu(x_{n_A}),\mu(x_{n_A + 1}), \dots, \mu(x_n)\right)^T,
+		\bar \mu^T = (\bar \mu_A^T, \bar \mu_B^T) =  \left(\mu_A, \dots, \mu_A, \mu_B, \dots, \mu_B\right) \in \R^{n_A} \times \R^{n_B},
 	$$
 	$$
 		b = \frac{1}{\sigma}P^T \bar \mu =
@@ -525,29 +560,31 @@ or not.
 	Denote by $\tilde P_{11}^T$ the orthogonal $n_A \times n_A$ matrix obtained by adding $(1/\sqrt{n_A}, \dots, 1/\sqrt{n_A}) \in \R^{n_A}$  as an additional row to $P_{11}^T$. We then get
 	\begin{align*}
 		\xi_A  = \sum_{i=1}^{n_A -1} b_i^2 =
-		  & \frac{1}{\sigma^2} \left(\sum_{i=1}^{n_A} \left(\left(\tilde P_{11}^T \bar \mu_A \right)_i \right)^2 - |(1/\sqrt{n_A}, \dots, 1/\sqrt{n_A}) \mu_A|^2 \right) \\
-		= & \frac{1}{\sigma^2} \left(\sum_{i=1}^{n_A} \bar \mu_i^2 - \frac{1}{n_A} \left(\sum_{i=1}^{n_A} \bar \mu_i \right)^2 \right),
+		  & \frac{1}{\sigma^2} \left(\sum_{i=1}^{n_A} \left(\left(\tilde P_{11}^T \bar \mu_A \right)_i \right)^2 - |(1/\sqrt{n_A}, \dots, 1/\sqrt{n_A}) \bar\mu_A|^2 \right) \\
+		= & \frac{1}{\sigma^2} \left(\sum_{i=1}^{n_A} \bar \mu_i^2 - \frac{1}{n_A} \left(\sum_{i=1}^{n_A} \bar \mu_i \right)^2 \right)
+		= \frac{1}{\sigma^2} \left(n_A \mu_A^2 - n_A \mu_A^2 \right) = 0,
 	\end{align*}
-	where we have used the orthogonality of $\tilde P_{11}$ in the last equality. Similarly, one gets
+	where we have used the orthogonality of $\tilde P_{11}$ in the third equality. Similarly, one gets
 	$$
-		\xi_B = \frac{1}{\sigma^2} \left(\sum_{i=n_A}^{n-2} \mu_i^2 - \frac{1}{n_B} \left(\sum_{i=n_A}^{n-2} \mu_i \right)^2 \right)
+		\xi_B = \frac{1}{\sigma^2} \left(n_B \mu_B^2 - n_B \mu_B^2 \right) = 0
 	$$
 	and
 	$$
-		\xi_{\text{neg}} = \frac{\left(n_B \sum_{i=1}^{n_A} \mu_i - n_A \sum_{i=n_A + 1}^n \mu_i \right)^2}{\sigma^2\left(n_A^2 n_B + n_A n_B^2\right)}.
+		\xi_{\text{neg}} = \frac{\left(n_B \sum_{i=1}^{n_A} \bar \mu_i - n_A \sum_{i=n_A + 1}^n \bar \mu_i \right)^2}{\sigma^2\left(n_A^2 n_B + n_A n_B^2\right)} = 
+		\frac{n_A n_B (\mu_A - \mu_B)^2}{n\sigma^2}.
 	$$
 	Altogether, we can rewrite \eqref{eq:Z_law} to get
 	\begin{align}\label{eq:Z_law2}
 		Z_r \eqdis
 		 & \sigma^2 \left(
-		\lambda_{A}^r \chi^2_{n_A -1}(\xi_A)
-		+ \lambda_{B}^r \tilde \chi^2_{n_B -1}(\xi_B)
+		\lambda_{A}^r \chi^2_{n_A -1}
+		+ \lambda_{B}^r \tilde \chi^2_{n_B -1}
 		+ \lambda_{\text{neg}}^r \bar \chi_1^2(\xi_{\text{neg}})
 		\right),
 	\end{align}
-	where $\chi^2_{n_A -1}(\xi_A), \tilde \chi^2_{n_B -1}(\xi_B)$ and $\bar \chi_1^2(\xi_{\text{neg}})$ are independent.
+	where $\chi^2_{n_A -1}, \tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2(\xi_{\text{neg}})$ are independent.
 
-	Under $H_0$, $\bar \mu = (c, \dots, c)^T$ for some $c \in \R$. This implies that $\xi_A = \xi_B = \xi_{\text{neg}} = 0$, which is equivalent to $b=0$. It then follows that
+	Under $H_0$, we have $\mu_A = \mu_B$, which implies that $\xi_{\text{neg}} = 0$. It then follows that
 	\begin{align}\label{eq:Z_law3}
 		Z_r \eqdis
 		 & \sigma^2 \left(
@@ -556,7 +593,7 @@ or not.
 		+ \lambda_{\text{neg}}^r \bar \chi_1^2
 		\right),
 	\end{align}
-	where all chi-squares are central and independent. Denoting the random variable in brackets by $Z_r^1$, this means that, under $H_0$,
+	where all chi-squares are central and independent. Denoting the random variable in brackets by $Z_r^1$, this means that
 	$$
 		F_R^0(r) = \P_0(Z_r \leq 0) = \P_0(Z_r^1 \leq 0).
 	$$
@@ -567,7 +604,7 @@ or not.
 \begin{proof}[Proof of Lemma \ref{lem:large_sample}]
 	Let $n \to \infty$ and assume that $n_A /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. We first want to investigate the weak limit of $Z_r^1$ under $H_0$, i.e. the limit of
 	\begin{align}\label{eq:Z_lim}
-		\tilde \lambda_A^r \frac{\chi_{n_A - 1}}{n_A - 1} + \tilde \lambda_B^r \frac{\tilde \chi_{n_B - 1}}{n_B - 1} + \lambda_{\text{neg}}^r \bar \chi_{1},
+		\tilde \lambda_A^r \frac{\chi^2_{n_A - 1}}{n_A - 1} + \tilde \lambda_B^r \frac{\tilde \chi^2_{n_B - 1}}{n_B - 1} + \lambda_{\text{neg}}^r \bar \chi^2_{1},
 	\end{align}
 	where all chi-squares are independent and
 	\begin{align*}
