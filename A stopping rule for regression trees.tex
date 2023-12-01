@@ -211,7 +211,7 @@ $$
 	F^0_R(r) = \P_0(R \leq r)
 $$
 be the distribution function of the stopping test statistic $R$ from \eqref{eq:R_j}, given $H_0$ holds true.
-\begin{lemma}\label{lem:distr_R}
+\begin{lemma}[Null distribution]\label{lem:distr_R}
 	It holds that
 	\begin{align*}
 		F_R^0(r) = \P_0(Z_r^1 \leq 0),
@@ -242,11 +242,35 @@ where
 \end{align*}
 is the characteristic function of $Z_r^1$ under $H_0$.
 
+\begin{corollary}[Distribution under the alternative]
+We have
+	\begin{align*}
+		F_R^1(r) = \P_1(Z_r^1 \leq 0),
+	\end{align*}
+	where, under $H_1$,
+	\begin{align}\label{eq:Z_r}
+		Z_r^1 \eqdis
+		\lambda_A^r \chi^2_{n_A -1}
+		+ \lambda_B^r \tilde \chi^2_{n_B -1}
+		+ \lambda_{\text{neg}}^r \bar \chi_1^2(\xi_{\text{neg}}),
+	\end{align}
+with non-centrality parameter $\xi_{\text{neg}} = \frac{n_A n_B (\mu_A - \mu_B)^2}{n\sigma^2}$ and all other variables are defined as in Lemma \ref{lem:distr_R}.
+\end{corollary}
+
+In Figure \ref{fig:H0_H1}, we set $(n_A, n_B) = (20, 15)$, $\sigma^2 = 1$ and compare the cdf under $H_0$ with three different versions of cdfs under $H_1$.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.6\textwidth]{./Figures/H0_H1_comparison.png}\hfill
+	\caption{Comparison of $F_R^0(r)$ (red) and three different versions of $F_R^1(r)$ corresponding to $|\mu_A - \mu_B| = 0.5, 1, 2$ (lightblue, blue, darkblue).}
+	\label{fig:H0_H1}
+\end{figure}
+
 The next result shows large sample size properties of $R$.
 \begin{lemma}[Large sample size]\label{lem:large_sample}
 	Let $n \to \infty$ and assume that $n_{A} /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. Then, under $H_0$, $R$ converges to $1$ in probability.
 \end{lemma}
-This is in line with the numerical results in Figure \ref{fig:F_R}.
+This is in line with the results in Figure \ref{fig:F_R}.
 
 \begin{figure}[H]
 	\centering
@@ -256,15 +280,17 @@ This is in line with the numerical results in Figure \ref{fig:F_R}.
 	\label{fig:F_R}
 \end{figure}
 
-Figure \ref{fig:F_R_2} shows how the distributions change when $n_A, n_B$ vary while $n$ is fixed. It seems that low quantiles are not much affected by unbalancedness of $(n_A, n_B)$.
+%Figure \ref{fig:F_R_2} shows how the distributions change when $n_A, n_B$ vary while $n$ is fixed. It seems that low quantiles are not much affected by unbalancedness of $(n_A, n_B)$.
+%
+%\begin{figure}[H]
+%	\centering
+%	\includegraphics[width=.5\textwidth]{./Figures/50_50_F_R.png}\hfill
+%	\includegraphics[width=.5\textwidth]{./Figures/95_5_F_R.png}\hfill
+%	\caption{$F_R^0(r)$ for $(n_A, n_B) = (50, 50)$ and $(n_A, n_B) = (95, 5)$.}
+%	\label{fig:F_R_2}
+%\end{figure}
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=.5\textwidth]{./Figures/50_50_F_R.png}\hfill
-	\includegraphics[width=.5\textwidth]{./Figures/95_5_F_R.png}\hfill
-	\caption{$F_R^0(r)$ for $(n_A, n_B) = (50, 50)$ and $(n_A, n_B) = (95, 5)$.}
-	\label{fig:F_R_2}
-\end{figure}
+
 
 
 
