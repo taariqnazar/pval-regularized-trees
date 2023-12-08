@@ -2,9 +2,10 @@
 *
 # Except 
 !.gitignore
+!.github/**
 !code/*
 !*/
 !notes.tex
 !A stopping rule for regression trees.tex
-!Figures/
+!Figures/*
 
