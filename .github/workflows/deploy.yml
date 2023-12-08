@@ -1,35 +1,50 @@
-name: Build LaTeX document
-permissions:
-  contents: write
-on:
+name: Test with tag_name 
+
+on: 
   push:
     branches: [main]
-jobs:
-  build_latex:
+
+
+jobs: 
+  get_tag:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Git repository
-        uses: actions/checkout@v3
-      - name: Compile LaTeX document
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: test.tex
-      - name: Generate release tag
-        id: tag
+      - name: Tag name 
         run: |
-          if [ -n "${{ github.ref_name }}" ]; then
-            TAG=${{ github.ref_name }}
-          else
-            TAG="pdf"
-          fi
-          echo "Release Tag: $TAG"
-          echo "::set-output name=release_tag::$TAG"
-          #echo "::set-output name=release_tag::Build_$(date +"%Y.%m.%d_%H-%M")"
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: pdf #${{ steps.tag.outputs.release_tag }}
-          files: |
-            test.pdf
+          echo "${{ github.ref_name }}"
+
+#name: Build LaTeX document
+#permissions:
+#  contents: write
+#on:
+#  push:
+#    branches: [main]
+#jobs:
+#  build_latex:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Set up Git repository
+#        uses: actions/checkout@v3
+#      - name: Compile LaTeX document
+#        uses: xu-cheng/latex-action@v3
+#        with:
+#          root_file: test.tex
+#      - name: Generate release tag
+#        id: tag
+#        run: |
+#          if [ -n "${{ github.ref }}"  ]; then
+#            TAG=${{ github.ref_name }}
+#          fi
+#          TAG="pdf"
+#          echo "Release Tag: $TAG"
+#          echo "The Tag: "
+#          echo "::set-output name=release_tag::$TAG"
+#          #echo "::set-output name=release_tag::Build_$(date +"%Y.%m.%d_%H-%M")"
+#      - name: Create Release
+#        uses: softprops/action-gh-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: pdf #${{ steps.tag.outputs.release_tag }}
+#          files: |
+#            test.pdf
