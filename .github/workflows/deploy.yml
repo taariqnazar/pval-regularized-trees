@@ -19,7 +19,7 @@ jobs:
             TAG_NAME="pdf"
           fi
           echo "$TAG_NAME"
-          echo "::set-output name=release_tag::$TAG_NAME"
+          echo "release_tag=$TAG_NAME" >> $GITHUB_OUTPUT
 #name: Build LaTeX document
 #permissions:
 #  contents: write
