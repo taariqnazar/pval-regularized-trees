@@ -1,4 +1,6 @@
-name: test
+name: Build LaTeX document
+permissions:
+  contents: write
 on:
   push:
     tags:
@@ -9,6 +11,12 @@ jobs:
   build_latex:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v3
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: test.tex
       - name: Generate release tag
         id: tag
         run: |
@@ -20,42 +28,11 @@ jobs:
           fi
           echo "$TAG_NAME"
           echo "release_tag=$TAG_NAME" >> $GITHUB_OUTPUT
-#name: Build LaTeX document
-#permissions:
-#  contents: write
-#on:
-#  push:
-#    tags:
-#      - '*'
-#    branches:
-#      - main 
-#jobs:
-#  build_latex:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Set up Git repository
-#        uses: actions/checkout@v3
-#      - name: Compile LaTeX document
-#        uses: xu-cheng/latex-action@v3
-#        with:
-#          root_file: test.tex
-#      - name: Generate release tag
-#        id: tag
-#        run: |
-#          if [ "${{ github.ref }}" == "refs/tags/"* ]; then
-#            TAG_NAME="${{ github.ref }}"
-#            TAG_NAME="${TAG_NAME#refs/tags/}"
-#          else
-#            TAG_NAME="pdf"
-#          fi
-#          echo "$TAG_NAME"
-#          echo "::set-output name=release_tag::$TAG_NAME"
-#          #echo "::set-output name=release_tag::Build_$(date +"%Y.%m.%d_%H-%M")"
-#      - name: Create Release
-#        uses: softprops/action-gh-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: pdf #${{ steps.tag.outputs.release_tag }}
-#          files: |
-#            test.pdf
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          files: |
+            test.pdf
