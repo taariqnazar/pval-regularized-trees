@@ -16,7 +16,7 @@ jobs:
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v3
         with:
-          root_file: test.tex
+          root_file: main.tex
       - name: Generate release tag
         id: tag
         run: |
@@ -35,4 +35,4 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           files: |
-            test.pdf
+            main.pdf
