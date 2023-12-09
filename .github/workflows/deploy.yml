@@ -12,7 +12,7 @@ jobs:
       - name: Generate release tag
         id: tag
         run: |
-          if [ "${{ github.ref }}" == "refs/tags/"* ]; then
+          if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
             TAG_NAME="${{ github.ref }}"
             TAG_NAME="${TAG_NAME#refs/tags/}"
           else
