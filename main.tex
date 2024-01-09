@@ -192,8 +192,6 @@ for an unknown regression function $\mu \colon \R^d \to \R$ and unknown $\sigma^
 Choosing the same estimators as in \eqref{eq:par_estimators}, this approach hence motivates the same stopping testing statistic $R_j$ as in \eqref{eq:R_j}.
 
 
-
-
 \subsection{Signal/No-signal hypothesis testing}
 Ideally, one should stop splitting once the generalization error increases for the first time, i.e. when condition \eqref{eq:stop_criterion} is satisfied. However, since the true values $\sigma^2_{D_j}, \pi_{A_j \mid D_j}$ and $\pi_{B_j \mid D_j}$ are unknown, we have to use the estimators in \eqref{eq:par_estimators}, and the resulting criterion $R_j > 1$ is subject to randomness in the estimators $\hat \sigma^2_{D_j}$ and $\hat \pi_{A_j \mid D_j}, \hat \pi_{B_j \mid D_j}$. For this reason, our approach is to carry out a sequence of hypotheses tests. More formally, for each potential splitting node, we let
 \begin{align}
@@ -290,41 +288,12 @@ This is in line with the results in Figure \ref{fig:F_R}.
 %	\label{fig:F_R_2}
 %\end{figure}
 
+
+
+
 \section{The stopping rule}
 
 \section{Numerical illustration}
-
-\section{Minimal cost-complexity pruning - Notes and stuff}
-
-
-- Can we actually calculate the splitting path from Breimans results?
-- Breiman uses absolute difference in reduction does this also hold in our
-relative case? That is, is there a 1-1 correspondence between his results and
-ours?
-
-An observation is that more than one split can be pruned. The reason for this
-effect is that each split has the same cost-complexity $ \alpha $ and therefore
-the algorithm chooses the smallest tree with a certain $ \alpha $.
-
-For each node we define $\alpha_{eff}(t) = \frac{R(t) - R(T_t)}{size(T_t) - 1}$.
-Here $ R(t) $ is the impurity at node $ t $ and $ R(T_t) $ is the impurity of the
-tree starting at $ t $. $ R(T_t) $ is the weighted sum of impurities of each
-leaf of the tree $ T_t$. So to get the splitting path, we need to calculate
-$\alpha_{eff}(t)$ for each node. From this, we can calculate the sorted path of
-cost complexities.
-
-In Sklearn, the regression tree has a method called \textbf{decision path} that
-returns, the path of a datapoint in the form of a matrix, where the entry $ m \times
-	t $ is non-zero if datapoint $ m $ passes through node $ t $. From this, we can
-pinpoint the leaf of each node by looking at the index of each non-zero entry.
-To calculate the cost-complexities, we need to recalculate the alpha eff after
-each prune.
-
-Nils suggested that, we look at single node reduction at each step. That is, we
-look at the parents of the lowest nodes and decide if the node should be pruned
-or not.
-
-
 
 \section{Appendix: Proofs}
 
