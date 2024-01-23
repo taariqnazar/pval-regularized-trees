@@ -762,8 +762,8 @@ If we denote $ T $ as a tree and define $ R(T) $ as the
 weighted loss contributions from the leaves of $ T $, we can define a penalized
 loss $ R_{\alpha}(T) = R(T) + \alpha|T|$, where $ |T| $ is the number of leaves
 of the tree $ T $ and $ \alpha $ is some hyper-parameter that penalizes
-complexity. Breiman's algorithm produces the best subtree for a given $ \alpha $ that minimizes
-$ R_{\alpha}(T) $. Furthermore, they show that the best tree is a nested family of
+complexity. Breiman's algorithm produces the best \textbf{subtree} for a given $ \alpha $ that minimizes
+$ R_{\alpha}(T) $. Furthermore, it can be shown that the best trees are nested 
 subtrees $ T_k $ of $ T $ such that each is optimal for an interval of $ \alpha
 $. So there is a sequence $ \{\alpha_k \} $ 
 
@@ -783,29 +783,28 @@ The procedure for attaining $ \{\alpha_k \} $ and $ T_k $ is as follows. Given a
 tree $ T_i $, denote all non-terminal nodes with some $ t $ and calculate the 
 gain $ g(t, T^{(t)}) = \frac{R(t) - R(T^{(t)})}{|T^{(t)}| - 1} $ for all $ t $, where $ R(t) $ is
 the loss at the node $ t $ treated as a trivial tree and $ R(T^{(t)}) $ is the
-loss of the tree that is rooted at $ t $. Then $\alpha_i = arg\,min_t
-g(t,T^{(t)})$. Pruning all nodes where the $ g(\cdot) = alpha_i $ produces a new
+loss of the tree that is rooted at $ t $. Then $\alpha_i = \underset{t}\min \; 
+g(t,T^{(t)})$. Pruning all nodes where the $ g(\cdot) = \alpha_i $ produces a new
 tree $ T_{i+1} $. Now perform the same procedure on $ T_{i+1} $ and so on until
-the trivial tree is reached. A two remarks can be made. Firstly, the procedure
+the trivial tree is reached. This results in a sequence $ \{\alpha_k \} $ and a
+sequnce of nested trees $ \{ T_k \} $. Two remarks can be made. Firstly, the procedure
 handles ties in gain by choosing the smallest tree as next in line. Second, the
 gain is attained from simple algebra by solving for $ \alpha $ in the equation
 $R_{\alpha}(t) - R_{\alpha}(T^{(t)}) = 0 $.
 
-ADD the fact there is not a unique sequence but of a full tree there is a
-minimal subtree? or is this true?
-
 \subsection{Adaptive Boosting}
 
-When boosting regression trees, there are typically two parameters that need to
-be decided. First, the complexity of the weak learners(tree) at each boosting step and second
+When boosting regression trees, there are in general two parameters that need to
+be decided. First, the complexity of the weak learners, e.g. number of leaves
+ofr regression trees, at each boosting step and second
 the stopping criterion, that is, step $ k $ to stop boosting. The complexity of
 the tree is choosen heuristically.
 However, the stopping criterion is typically decided using cross validation. Where the
-training is stopped as soon as the generalization error stops decreasing.
-Adaptive Boosting Trees(ABT) tackles this problem by providing an algorithm for boosting
+training is stopped as soon as the out-of-sample error starts increasing.
+Adaptive Boosting Trees(ABT) tackles this problem by proposing an algorithm for boosting
 with a built-in stopping rule that is based on the complexity of the weak
 learner. That is, it is sufficient to choose a parameter $ J $ and the procedure
-will produce a boosted trees with at most complexity $ J $ and will stop. 
+will produce boosted trees with at most complexity $ J $ and will stop. 
 
 ABT leverages Breiman's pruning method (see \ref{sec:ccp}) to produce learners of at most $ J $
 leaves. That is, at each boosting iteration a tree is fitted by choosing the subtree $ T_k $
@@ -825,7 +824,7 @@ when an $ L^2 $ loss is considered, the reponse at each iteration is the
 residuals.
 
 A problem raised in the ABT paper is that their procedure sometimes stops early,
-"stuck in local optima". They propose to use a bagging fraction $ \beta $ to
+"stuck in local optima". They propose using a bagging fraction $ \beta $ to
 overcome this issue.
 
 \subsection{Gradient boosting with inference}
@@ -834,19 +833,19 @@ We propose a method for stopping tree building, using inference. Where we decide
 significance level $ \tilde\alpha $ and bound the tree building process using
 Bonferroni type arguments. The stopping rule is then, to stop when the
 cummulative sum of
-the $ p $-values at each split exceeds $ \tilde\alpha $.However, one caveat is that we
+the $ p $-values at each split exceeds $ \tilde\alpha $. However, one caveat is that we
 need to decide on a splitting sequence for which we sum the $ p $-values.
-Heuristically, we can choose the trees produced by Breiman's algorithm to
-produce a sequence splits.
+Heuristically, we can choose the trees produced by Breiman's algorithm as a sequence splits.
 
 An alternative method would be to boost residuals using depth $ 1 $ trees as
 weak learners. This solves the problem of choosing a sequence, since the
 sequence is the natural boosting iterations. Then, a stopping criterion is 
 to stop boosting when the cummulative sum of $ p $-values at each boosting
-iteration exceeds $ \tilde\alpha $. It is then possible to resuse our hypothesis test.
+iteration exceeds $ \tilde\alpha $. It is then possible to resuse our hypothesis
+test. However, we have not thought out how to incorporate more complex learners.
+Maybe Breiman + inference + boosting. In some sense altering ABT?
 
 An intial simulation study results in the following figures.
-
 
 
 \begin{figure}
