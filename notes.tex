@@ -827,7 +827,45 @@ A problem raised in the ABT paper is that their procedure sometimes stops early,
 "stuck in local optima". They propose using a bagging fraction $ \beta $ to
 overcome this issue.
 
-\subsection{Gradient boosting with inference}
+\subsubsection{Varying sample sizes}
+
+It is interesting to see how this method performs for ranges of different
+sample sizes. We simulate data for studying this method in the following way.
+First we define the underlying mean as
+
+\begin{align*}
+  \mu(x) = 10 + 10\mathbf{1}_{\{x> 0.7\}} -25\mathbf{1}_{\{x < 0.2\}} +
+  3\mathbf{1}_{\{x<0.5\}}.
+\end{align*}
+
+This gives us $ 4 $ levels for the response.The data point is then distributed in the following way
+$ X \sim Unif([0,1]) $ and $ Y|X=x \sim N(\mu(x), \sigma^1)$, for some $ \sigma
+$ that controls the level of noise. For the different sample sizes we get the
+following statistics. 
+
+
+
+An interesting observation is that when $ J >= 4 $, we get weird behaviours from
+ABT. This makes sense since we are building trees that are more complex than the
+underlying data.
+
+
+
+\begin{enumerate}
+
+\item Plot of MSEP for different sample sizes
+\item Plot of MSEP for number of iterations for these sample sizes
+
+\end{enumerate}
+
+\subsubsection{Connection to MSEP p-values}
+
+Is there a connection between the p-values we calculate and the stopping
+mechanism in ABT? A simulation study gives the following results.
+
+
+
+\subsection{Gradient boosting with MSEP inference}
 
 We propose a method for stopping tree building, using inference. Where we decide on a
 significance level $ \tilde\alpha $ and bound the tree building process using
