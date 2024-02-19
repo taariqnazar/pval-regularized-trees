@@ -1,33 +1,24 @@
 \documentclass{article}
 
-\usepackage[T1]{fontenc}
-\usepackage{amsmath}
-\usepackage{amsthm}
-\usepackage{amssymb}
-\usepackage{graphicx}
-\usepackage{float}
+\usepackage[T1]{fontenc} \usepackage{amsmath} \usepackage{amsthm}
+\usepackage{amssymb} \usepackage{graphicx} \usepackage{float}
 
 %%% OUTLINES
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{theorem}{Theorem}[section] \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
 
-\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{definition} \newtheorem{definition}[theorem]{Definition}
 \newtheorem{example}[theorem]{Example}
 
-\theoremstyle{remark}
-\newtheorem{remark}[theorem]{Remark}
+\theoremstyle{remark} \newtheorem{remark}[theorem]{Remark}
 %%% END OUTLINES
 
 %%% SYMBOLS
-\newcommand{\R}{\mathbb{R}}  % The real numbers.
-\newcommand{\E }{\mathbb{E}}  % Expectation Operator
-\renewcommand{\P}{\mathbb{P}}  % Probability
+\newcommand{\R}{\mathbb{R}}  % The real numbers. 
+\newcommand{\E }{\mathbb{E}}  %Expectation Operator \renewcommand{\P}{\mathbb{P}}  % Probability
 \newcommand{\Cov}{\operatorname{Cov}}  % Cov Operator
 \newcommand{\Var}{\operatorname{Var}}  % Var Operator
-\newcommand{\MSEPin}{\textbf{MSEP}_{\text{in}}}
-\newcommand{\MSE}{\textbf{MSE}}
+\newcommand{\MSEPin}{\textbf{MSEP}_{\text{in}}} \newcommand{\MSE}{\textbf{MSE}}
 \newcommand{\eqdis}{\stackrel{d}{=}}
 
 \newcommand{\bigzero}{\mbox{\normalfont\Large\bfseries 0}}
@@ -37,735 +28,165 @@
 
 %%% END SYMBOLS
 
-\title{Notes on covariance penalties}
-\begin{document}
-\maketitle
+\title{Notes on Trees} \author{Tree Team}
 
-%\begin{abstract}
-%  Abstract
-%\end{abstract}
+\begin{document} \maketitle
 
-\section{Introduction}
-In estmation theory there is a great importance in evaluating the prediction
-error of the model. In the majority of cases cross-validation suffices. However,
-when the dataset is "small" cross-validation estimates this error poorly, in
-this case the partition of the validation set becomes a deciding factor of the
-error estimate. A way to combat this is to look at covariance penalties which
-offers a more deterministic approach to the errro estimate with the cost of
-having additional assumptions.
+%\begin{abstract} Abstract \end{abstract}
 
-If we focus specifically on trees we can show some interesting? findings...
+\section{Introduction} 
 
-\section{Independent copy construction}
-Consider iid trainingsdata $\left((X_i, Y_i)\right)_{i=1}^n$ and independent test response data $Y^*$. Starting of with the general expression for prediction error
+A popular model for supervised learning is the Classification And Regression
+Tree (CART). As in all of machine learning, question regarding how well a model
+generalizes to unseen data is central. The problem of model generalzation is
+sometimes called the overfitting problem. One way of evaluating generlization is
+using cross-validation, which allocates a prespecified fraction of the data for
+evaluating the trained model. This type of validation has many caveats, for one,
+there is less data available for training the model. Further, using too little
+data for validation produces poor estimate of the \textbf{generalzation error}.
+Others have proposed estimating the error using the same data that generated the
+model using various methods (AIC, BIC etc). 
 
-\begin{align}
-	\textbf{MSEP} & = \E \left( (Y^* - \widehat\mu)^2 \right),
-	\label{msep}
-\end{align}
-where the $ * $ denots the data being an independent copy of the trainingsdata
-used to create the estimator $ \widehat\mu $. Using this general expression for
-prediction error we can manipulate it in the following way
-\begin{align}
-	\E \left( (Y^* - \widehat\mu)^2 \right) & = \E \left( (Y^* - \mu + \mu -
-	\widehat\mu)^2 \right)                                                        \\
-	                                        & = \E \left( (Y^* - \mu)^2 \right) +
-	2\E \left( (Y^* - \mu)(\widehat \mu - \mu) \right)  +
-	\E \left( (\widehat\mu - \mu)^2 \right),
-\end{align}
-where $ \mu (x) = \E[Y \mid X =x] $ is the true regression function. Since we assume that $ Y^* $ and $ \widehat\mu $ are independent the second term
-in the above expansion is identically zero. Furthermore, since $ \widehat\mu =
-	\frac{1}{n}\sum_{j=1}^{n} Y_j$, we can express the prediction error as
-\begin{align}
-	\textbf{MSEP} & = \E \left( (Y^* - \mu)^2 \right) +
-	2\E \left( (Y^* - \mu)(\widehat \mu - \mu) \right)  +
-	\E \left( (\widehat\mu - \mu)^2 \right)                   \\
-	              & = \E \left( (Y^* - \mu)^2 \right) +
-	\E \left( (\frac{1}{n}\sum_{j=1}^{n} Y_j - \mu)^2 \right) \\
-	              & = \sigma^2 + \frac{\sigma^2}{n},
-	\label{pred_err}
-\end{align}
-where $\sigma^2 := \E(\sigma^2(X))$ (in the heteroscedastic case). One can interepret this result as the prediction error on a specific leaf of a
-tree. In the most simple case one can see this as the prediction error when
-there is no split.
+Finally, another approach is to evaluate the generalization by using inference
+based methods and hypothesis testing. The connection between direct estimation
+of generalization error and hypothesis test is unclear. However, they aim to do
+the same thing. 
 
-Using simple probability one can once again manipulate
-expression (\ref{msep}).
-\begin{align}
-	\textbf{MSEP}_{split} & = \E \left( (Y^* - \widehat\mu)^2 \right)        \\
-	                      & = \E \left( (Y^* - \widehat\mu)^2 \right | X \in
-	\mathcal{A})\P(X \in \mathcal{A})                                        \\
-	                      & + \E \left( (Y^* - \widehat\mu)^2 \right | X \in
-	\mathcal{A}^c)\P(X \in \mathcal{A}^c).
-\end{align}
-Performing similar analysis as done in (\ref{pred_err}), we get the expression
-\begin{align}
-	\textbf{MSEP}_{split} & = \sigma^2_{\mathcal{A}}( 1 + \frac{1}{n_{\mathcal{A}} })\pi_{\mathcal{A}} +
-	\sigma^2_{\mathcal{A}^c}(1 + \frac{1}{n_{\mathcal{A}^c}})\pi_{\mathcal{A}^c},
-\end{align}
-where
-$$
-	\sigma^2_{\cdot} := \Var\left(Y \mid X \in \cdot \right),
-$$
-$\pi_{\cdot}, n_{\cdot}$ is the
-variance, probability and number of samples respectively. An interpretation of
-this is having a binary split of the data.
+For CART there are a multitude of methods propsed for dealing with overftting
+using inference. \cite{shih2004variable} use inference to determine the split of
+a node. Others use traditional scoring methods for choosing splits but use
+inference to determine the quality of the split, see
+\cite{jensen1997adjusting, hothorn2006unbiased, neufeld2022tree}. However, care
+should be taken when using inference. \cite{jensen1997adjusting} argues that
+mutiple testing across covariates should be accounted for and
+\cite{neufeld2022tree} warns about \textit{selective inference}. See
+\cite{neufeld2022tree} for selective inference on CART and
+\cite{fithian2017optimal} for the general theory of selective inference. 
 
-A natural question when building tree models is, "should a split be made on this
-node?". One way to make a decision about this is to compare if the prediction
-error when making the split is lower than the non-split error, that is
-\begin{align}
-	\textbf{MSEP}_{split} > \textbf{MSEP}.
-	\label{split_criterion}
-\end{align}
-If the inequality holds true then a split should \textbf{not} be made, since
-doing so will increase the prediction error. The rule in (\ref{split_criterion})
-can be written as
-\begin{align}\label{eq:Stop}
-	\sigma^2_{\mathcal{A}}( 1 + \frac{1}{n_{\mathcal{A}} })\pi_{\mathcal{A}} +
-	\sigma^2_{\mathcal{A}^c}(1 + \frac{1}{n_{\mathcal{A}^c}})\pi_{\mathcal{A}^c} >
-	\sigma^2(1 + \frac{1}{n}).
-\end{align}
-Note that $ n = n_{\mathcal{A}} + n_{\mathcal{A}^c} $.
+Results from the change-point detection literature can be leveraged for
+constructin trees, since splitting a node is essentially the same as finding a
+change-point in the data. Specifically, we will use results from
+\cite{hawkins1977testing, yao1986asymptotic} for inference on trees. There are a
+multitude of ways for constructing trees using inference, but, below we will
+focus on a few methods that we argue are reasonable. Furthermore, we will
+analyse the effect of inference based methods for boosted trees. 
 
-\section{Insample construction}
-In this case we will look at a construction which is based on the insample
-error. We assume homoscedacity, i.e. $\Var(Y \mid X) = \sigma^2$ is non-random.
-%If we begin as in the previous section where it is now assumed that we do
-%not have an independet copy of the data but instead are working with the
-%insample data, we see that the cross term does not cancel. 
-Fix $x_1, \dots, x_N$ and let $\mathcal{L}(Y_i) = \mathcal{L}(Y^*_i) = \mathcal{L}\left(Y \mid X = x_i \right)$, with indpendence between $Y^*_i$ and $Y_i$, $i =1, \dots, n$ . Let $\hat \mu (x) = \hat \mu(x, (x_i, Y_i)_{i=1}^N)$ be an estimate of $\mu$ depending on the trainingsdata. Following Olas lecture notes,
-$$
-	\MSEPin = \frac{1}{N} \sum_{i=1}^N (Y_i^* - \hat \mu(x_i))^2, \quad \MSE = \frac{1}{N} \sum_{i=1}^N (Y_i - \hat \mu(x_i))^2,
-$$
-and we get that
-\begin{align*}
-	  & \E[\MSEPin] - \E[\MSE]                                                                                                                                                                                           \\
-	= & \frac{1}{N} \sum_{i=1}^N \E \left[(Y_i^* - \hat \mu(x_i))^2 - (Y_i - \hat \mu(x_i))^2 \right]                                                                                                                    \\
-	= & \frac{1}{N} \sum_{i=1}^N \left( \E [(Y_i^*)^2] - \E [(Y_i)^2] + \E [\hat \mu(x_i)^2] - \E [\hat \mu(x_i)^2] + 2  \left(\E\left[ Y_i \hat \mu(x_i) \right] -  \E\left[ Y_i^* \hat \mu(x_i) \right]\right) \right) \\
-	= & \frac{2}{N} \sum_{i=1}^N \left(  \E\left[ Y_i \hat \mu(x_i) \right] -  \E\left[ Y_i \right] \E \left[ \hat \mu(x_i) \right]\right)
-	= \frac{2}{N} \sum_{i=1}^N \Cov(Y_i, \hat \mu(x_i)).
-\end{align*}
-In the second-last equality, we have used the independence between $Y_i^*$ and $\hat \mu(x_i)$ and the fact that $\E[Y_i^*] = \E[Y_i]$. Hence,
-$$
-	\E[\MSEPin] = \E[\MSE] +  \frac{2}{N} \sum_{i=1}^N \Cov(Y_i, \hat \mu(x_i)).
-$$
-If the estimated regression function is a balanced tree, then $\hat \mu(x) = \sum_{j=1}^J I\{x \in A_j\} \hat m_j$, where $A_1, \dots, A_J$ form a partition of the covariate space and $\hat m_j = \frac{1}{|A_{j}|} \sum_{x_i \in A_j} Y_i$ with $|A_j | := |\{i \colon x_i \in A_j\}|$. Writing $\hat \mu(x_i) = \hat \mu_i$, the summands above become
-% That is
-%\begin{align}
-%	\E \left( (Y_i - \widehat\mu_i)^2 \right) & = \E \left( (Y_i - \mu_i + \mu_i -
-%	\widehat\mu_i)^2 \right) =                                                        \\
-%	                                          & = \E \left( (Y_i - \mu_i)^2 \right) +
-%	2\E \left( (Y_i - \mu_i)(\widehat\mu_i - \mu_i) \right)  +
-%	\E \left( (\widehat\mu_i - \mu_i)^2 \right)                                       \\
-%	                                          & = \E \left( (Y_i - \mu_i)^2 \right) +
-%	2\Cov \left(Y_i,  \widehat\mu_i \right) +
-%	\E \left( (\widehat\mu_i - \mu)^2 \right).
-%\end{align}
-%Here, subscript $ i $ referes to $ (Y_i, x_i) $ with $x_1, \dots, x_n$ fix. That is we are
-%working with a single datapoint. In the final step we can
-%aggregate all the individual errors. 
-%Now, simplifying the
-%covariance term we get a simple expression, assuming that the individual
-%datapoints are independent.
-\begin{align}
-	\Cov \left(Y_i,  \widehat\mu_i \right) & = \Cov \left(Y_i, \frac{1}{|A_{j(i)}|}\sum_{k \in A_{j(i)}}
-	Y_k\right)                                                                                           \\
-	                                       & =\frac{1}{|A_{j(i)}|}\Var \left(Y_i\right)
-	= \frac{1}{|A_{j(i)}|} \sigma^2.
-\end{align}
-Here, $j(i)$ is the index of the region containing $x_i$. Altogether, this gives
-\begin{align*}
-	\label{eq:msep_mse_op}
-	\E[\MSEPin] = \E[\MSE] +  \frac{2 \sigma^2 J}{N},
-\end{align*}
-since $\sum_{i = 1}^N \frac{1}{|A_{j(i)}|} = J$ is the number of disjoint regions.
+\section{Background}
 
+\subsection{Inference}
 
+There are in general two broad methods for constructing CART using
+inference; constructing trees recursively using inference (top-down ) and pruning trees
+using inference (bottomn-up). One can also combine both methods to construct trees.
 
-%A_i $ is the region in the covariate space where the datapoint is included in. Putting it all togehter we get an expression for the generalisation error as
-%\begin{align}
-%	\textbf{MSEP} & = \sum_{i}^{n} \sigma^2_{A_i} +
-%	\frac{2\sigma^2_{A_i}}{|A_i|} +
-%	\E \left( (\widehat\mu_i - \mu_i)^2 \right) =                             \\
-%	              & = \sum_{I}^{} \sigma^2_{A_I}(|A_I| + 2 ) + \sum_{i}^{n}\E
-%	\left( (\widehat\mu_i - \mu_i)^2 \right).
-%\end{align}
-%(I dont remember how we got rid of the last term?). 
-The comparison criterion in
-this case now simply becomes, in the binary split case
-\begin{align}
-	\sigma_{\mathcal{A}}^2 (n_{\mathcal{A}} + 2) + \sigma_{\mathcal{A}^c}^2
-	(n_{\mathcal{A}^c} + 2 ) > \sigma^2 (n + 2).
-\end{align}
+Constructing trees recursively, can be done by evaluating the quality of a split
+by some suitable hypothesis test. For instance, let $ \mathcal{D} = \left\{
+(X_i,y_i) \right\} _{i=1}^{n} $ be data available at a particular node of
+interest. The question is: can $ \mathcal{D} $ be partioned into two groups $
+\mathcal{D}_A, \mathcal{D}_B $ in a statistically significant way. Typically,
+these groups are chosen by minimizing some loss $ l(\mathcal{D}; A, B) =
+R(\mathcal{D}_A) + R(\mathcal{D}_B) $, for some function $ R $, e.g the $ L^2 $
+loss $ R(\mathcal{D}) = \sum_{i=1}^{n}(y_i - \bar{y})^2$. Then, a hypothesis
+test on the estimated partion is performed. The null hypothesis being that there
+is no difference between the groups. E.g $ H_0: \mu_A = \mu_B $
+\cite{neufeld2022tree}, both groups have the same mean. Then a suitable test is
+performed, and the split is accepted if $ H_0 $ is rejected with a significance
+$ \alpha $. This continues recursively, until no more splits can be made.
 
-Note that this is an equivalent representation of the splitting criterion as one
-found in the previous section. This can be clear by simplifying the MSE term.
-To begin with, we can set $ J = 1 $, assuming here that we don't want to make a
-split. Now,
+On the other hand, constructing trees by pruning is done by first building a
+full tree, for instance by minimizing the loss $ l $ described above in a greedy
+manner. Once a tree is fully constructed, one can for instance, evaluate the quality
+of splits in the \textit{frotier nodes}(nodes with children that are leaves) by
+performing a similar hypothesis test as above and removing splits that are
+insignificant. Finally, the pruning can be stopped once no more leaves can be
+pruned, this is done by \cite{jensen1997adjusting}.  
+
+In both methods of constructing trees, we are in some sense performing a test
+for each split, this puts us in the multiple testing regime. Here, we can not
+view each test as being performed independently, in some cases, a test is
+performed only if a previous test is rejected. However, understanding how these
+events relate to each other may be too complicated. Instead, we can bound the
+significance of all test together using \textit{Bonfferoni} corrections. More
+precisely, we want to bound the \textit{type-1} error in the following way:
 
 \begin{align*}
-	\E[\MSEPin] & = \E[\MSE] +  \frac{2 \sigma^2 }{N}                                                     \\
-	            & = \frac{1}{N}\sum_{1}^{N} (Y_i - \widehat \mu_i)^2  +  \frac{2 \sigma^2
-	}{N}                                                                                                  \\
-	            & = \frac{1}{N}\sum_{1}^{N} (Y_i - \mu_i + \mu_i - \widehat \mu_i)^2  +  \frac{2 \sigma^2
-	}{N}
-\end{align*}
-where, $ \mu_i $ is the true underlying mean. We can now expand the square term
-
-\begin{align*}
-	 & \frac{1}{N} \E \left(   \sum_{1}^{N} (Y_i - \mu_i) -2(Y_i - \mu_i)(\widehat \mu_i - \mu_i)
-	+ (\widehat \mu_i - \mu_i)^2\right)  +  \frac{2 \sigma^2
-	}{N}                                                                                          \\
-	 & = \sigma^2 - \frac{2}{N} \sum_{1}^{N}\Cov \left(Y_i, \widehat \mu_i
-	\right) + \frac{\sigma^2}{N} + \frac{2 \sigma^2
-	}{N}.
-\end{align*}
-Here, the covariance expression does not vanish since everythin is insample. Simplifying the covariance term we get
-\begin{align*}
-	 & \sigma^2 - \frac{2}{N} \sum_{1}^{N}\Cov \left(Y_i, \widehat \mu_i
-	\right) + \frac{\sigma^2}{N} + \frac{2\sigma^2}{N}                          \\
-	 & = \sigma^2 -\frac{2}{N} \sigma^2 + \frac{\sigma^2}{N} + \frac{2 \sigma^2
-	}{N} = \frac{\sigma^2(N + 1)}{N},
-\end{align*}
-which is identical to the expression found in the previous section.
-
-
-\section{Distribution of stopping variable}
-
-Consider $n = n_A + n_B$ datapoints $(x_i, Y_i)_{i=1}^n$, $\mathcal{L}(Y_i) =  \mathcal{L}(Y \mid X = x_i) = \text{Normal}(\mu(x_i), \sigma^2)$. In other words, writing $\mu_i = \mu(x_i)$, $(Y_i)$ follows a multivariate normal distribution with mean
-$$
-	\mu = (\mu_1, \dots, \mu_n)^T, \quad \Sigma = \sigma^2 I_n.
-$$
-Consider two disjoint sets $A, B$ with $x_1, \dots, x_{n_A} \in A$ and \\ $x_{n_A +1}, \dots, x_{n} \in B$ and let $C := A \dot \cup B$. Further, set
-$$
-	\sigma^2_A = \Var(Y \mid X \in A) = \E[(Y - \E[Y \mid X \in A])^2 \mid X \in A]
-$$
-Note that in general $\sigma^2 \leq \sigma^2_A$. Define $\sigma^2_B$ and $\sigma^2_C$ likewise. Estimating $\pi_A$ by $n_A/n$ and $\sigma^2_A$ by the unbiased variance estimator
-$$
-	\hat \sigma^2_A = \frac{1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2,
-$$
-where $\bar Y_A = 1/n_A \sum_{i=1}^{n_A} Y_i$, and analogously for the sets $B, C$, and plugging this into the above motivated $\eqref{eq:Stop}$, we arrive at the stopping criterion
-\begin{align}\label{eq:Stop2}
-	 & Z :=                                                                                                                             \\
-	 & \frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \bar Y_B)^2 -
-	\frac{n+1}{n - 1} \sum_{i=1}^{n} (Y_i - \bar Y)^2 > 0.
-\end{align}
-Let
-\begin{align}
-	D_A =\left[\begin{array}{@{}c|c@{}}
-			           \begin{matrix}
-				1 & \cdots & 1 \\
-				  & \vdots     \\
-				1 & \cdots & 1
-			\end{matrix}
-			                    & \quad \bigzero \quad \\
-			           \hline                          \\
-			           \bigzero &
-			           \bigzero                        \\
-			           \quad
-		           \end{array}\right],
-	\quad
-	I_A =\left[\begin{array}{@{}c|c@{}}
-			           \quad                           \\
-			           \quad \bigone_{n_A} \quad
-			                    & \quad \bigzero \quad \\
-			           \quad                           \\
-			           \hline                          \\
-			           \bigzero &
-			           \bigzero                        \\
-			           \quad
-		           \end{array}\right]
-\end{align}
-and $D_B, I_B$ defined correspondingly, with the one-matrix and the identity matrix in the lower right block instead. We can then rewrite \eqref{eq:Stop2} as a quadratic form
-\begin{align*}
-	Z = Y^T Q Y,
-\end{align*}
-where
-\begin{align*}
-	Q = & \frac{n_A +1}{n_A -1} \left(I_A - \frac{1}{n_A} D_A\right)^T\left(I_A - \frac{1}{n_A} D_A\right) +       \\
-	    & \frac{n_B +1}{n_B -1} \left(I_B - \frac{1}{n_B} D_B\right)^T\left(I_B - \frac{1}{n_B} D_B\right) -       \\
-	    & \frac{n +1}{n -1} \left(I_n - \frac{1}{n} \mathbf{1} \right)^T\left(I_n - \frac{1}{n} \mathbf{1}\right).
-\end{align*}
-Here, $\mathbf{1}$ is the matrix of ones only. Using that all matrices in brackets are symmetric and idempotent,
-\begin{align*}
-	 & Q = \frac{n_A +1}{n_A -1} \left(I_A - \frac{1}{n_A} D_A\right) +
-	\frac{n_B +1}{n_B -1}\left(I_B - \frac{1}{n_B} D_B\right) -
-	\frac{n +1}{n -1}\left(I_n - \frac{1}{n} \mathbf{1}\right) =        \\
-	 &
-	\left[\begin{array}{@{}c|c@{}}
-			      \begin{matrix}
-				\frac{n_A +1}{n_A} - \frac{n+1}{n}              & \frac{n+1}{(n-1)n} - \frac{n_A +1}{(n_A -1)n_A} & \cdots \\
-				\frac{n+1}{(n-1)n} - \frac{n_A +1}{(n_A -1)n_A} &                                                          \\
-				\vdots                                          & \ddots                                          &
-			\end{matrix}
-			                                       & \begin{matrix}
-				                                   \frac{n+1}{(n-1)n} & \cdots & \\
-				                                   \vdots                        \\
-			                                   \end{matrix}                                           \\
-			      \hline                                                                                                     \\
-			      \begin{matrix}
-				\frac{n+1}{(n-1)n} & \cdots & \\
-				\vdots                        \\
-			\end{matrix} &
-			      \begin{matrix}
-				\frac{n_B +1}{n_B} - \frac{n+1}{n}              & \frac{n+1}{(n-1)n} - \frac{n_B +1}{(n_B -1)n_B} & \cdots \\
-				\frac{n+1}{(n-1)n} - \frac{n_B +1}{(n_B -1)n_B} &                                                          \\
-				\vdots                                          & \ddots                                          &
-			\end{matrix} \\
-		      \end{array}\right].
-\end{align*}
-Q has four distinct eigenvalues
-\begin{align*}
-	\lambda_A =            & \frac{n_A +1}{n_A -1} - \frac{n+1}{n-1} = \frac{2 n_B}{(n_A -1)(n-1)} > 0, \\
-	\lambda_B =            & \frac{n_B +1}{n_B -1} - \frac{n+1}{n-1} = \frac{2 n_A}{(n_B -1)(n-1)} > 0, \\
-	\lambda_{\text{neg}} = & -\frac{n+1}{n-1} < 0,                                                      \\
-	\lambda_0 =            & 0
-\end{align*}
-with corresponding eigenspaces
-\begin{align}
-	\begin{split}\label{eq:Eigenspaces}
-		\text{Eig}_{\lambda_A} = &\text{span}\left(
-		\begin{bmatrix}
-				1      \\
-				-1     \\
-				0      \\
-				\vdots \\
-				0      \\
-				\mathbf{0}_{n_B}
-			\end{bmatrix},
-		\dots,
-		\begin{bmatrix}
-				1      \\
-				0      \\
-				\vdots \\
-				0      \\
-				-1     \\
-				\mathbf{0}_{n_B}
-			\end{bmatrix}
-		\right),
-		\quad
-		\text{Eig}_{\lambda_B} = \text{span}\left(
-		\begin{bmatrix}
-				\mathbf{0}_{n_A} \\
-				1                \\
-				-1               \\
-				0                \\
-				\vdots           \\
-				0
-			\end{bmatrix},
-		\dots,
-		\begin{bmatrix}
-				\mathbf{0}_{n_{A}} \\
-				1                  \\
-				0                  \\
-				\vdots             \\
-				0                  \\
-				-1
-			\end{bmatrix}
-		\right),  \\
-		\text{Eig}_{\lambda_{\text{neg}}} = &\text{span}\left(
-		\begin{bmatrix}
-				n_B    \\
-				\vdots \\
-				n_B    \\
-				-n_A   \\
-				\vdots \\
-				-n_A
-			\end{bmatrix}
-		\right), \quad
-		\text{Eig}_{\lambda_0} = \text{span}\left(
-		\begin{bmatrix}
-				1      \\
-				\vdots \\
-				1
-			\end{bmatrix}
-		\right)
-	\end{split}
-\end{align}
-and hence geometric multiplicities $n_A -1, n_B -1, 1$ and $1$, respectively. Let
-$$
-	P = \left[\begin{array}{@{}c|c|c|c@{}}
-			P_{11}
-			         & \bigzero
-			         & \begin{matrix}
-				           n_B/\sqrt{n_A^2 n_B + n_A n_B^2} \\
-				           \vdots                           \\
-				           n_B/\sqrt{n_A^2 n_B + n_A n_B^2}
-			           \end{matrix}
-			         &
-			\begin{matrix}
-				1/\sqrt{n} \\
-				\vdots     \\
-				1/\sqrt{n}
-			\end{matrix}                                \\
-			\hline
-			\bigzero &
-			P_{22}
-			         & \begin{matrix}
-				           -n_A/\sqrt{n_A^2 n_B + n_A n_B^2} \\
-				           \vdots                            \\
-				           -n_A/\sqrt{n_A^2 n_B + n_A n_B^2}
-			           \end{matrix}
-			         & \begin{matrix}
-				           1/\sqrt{n} \\
-				           \vdots     \\
-				           1/\sqrt{n}
-			           \end{matrix}
-		\end{array}\right],
-$$
-where $P_{11}$ ($P_{22}$) is an $n_A \times n_A -1$ ($n_B \times n_B -1$) matrix obtained by applying the Gram-Schmidt orthogonalization to the first $n_A$ (last $n_B$) components of the vectors spanning $\text{Eig}_{\lambda_A}$ ($\text{Eig}_{\lambda_B}$) from \eqref{eq:Eigenspaces} above.
-
-By Mathai, Provost, "Quadratic forms in random variables", page 29, formula (3.1a.4), it follows that
-\begin{align}
-	\begin{split}\label{eq:Z_law}
-		Z = &Y^T Q Y \\
-		\eqdis &\frac{\sigma^2}{n-1} \left(
-		\frac{2 n_B}{n_A -1} \sum_{i=1}^{n_A - 1} (U_i + b_i)^2
-		+ \frac{2 n_A}{n_B -1} \sum_{i= n_A}^{n -2} (U_i + b_i)^2
-		- (n+1) (U_{n-1} + b_{n-1})^2
-		\right).
-		%\\
-		%\eqdis &\frac{\sigma^2}{n-1} \left( 
-		%\frac{2 n_B}{n_A -1} \chi^2_A(n_A -1, \xi_A)
-		%+ \frac{2 n_A}{n_B -1} \chi^2_B(n_B -1, \xi_B)
-		%- (n+1) \chi^2(1, b_{n-1}^2)
-		%\right)
-	\end{split}
-\end{align}
-Here, $U_1, \dots, U_{n-1}$ are iid standard normally distributed and, with $\mu^T = (\mu_A^T, \mu_B^T)$,
-$$
-	b = \frac{1}{\sigma}P^T \mu =
-	\frac{1}{\sigma}\begin{bmatrix}
-		P_{11}^T \mu_A                                                                                      \\
-		P_{22}^T \mu_B                                                                                      \\
-		\left(n_B \sum_{i=1}^{n_A} \mu_i - n_A \sum_{i=n_A + 1}^n \mu_i\right)/\sqrt{n_A^2 n_B + n_A n_B^2} \\
-		\left(\sum_{i=1}^n \mu_i \right)/\sqrt{n}
-	\end{bmatrix}.
-$$
-\paragraph{Non-central Chi-square}
-Let $X_1, \dots, X_m$ independent normally distributed random variables with means $a_1, \dots, a_m$ and unit variances and set $\xi = \sum_{i=1}^m a_i^2$ (non-centrality parameter). Then, $\sum_{i = 1}^m X_i^2$ follows a non-central chi-squared distribution with $m$ degrees of freedom and is denoted by $\chi^2_m(\xi)$.
-
-In order to find the limit in \eqref{eq:Z_law} in terms of independent non-central chi-squares, we need to compute
-$$
-	\xi_A = \sum_{i=1}^{n_A -1} b_i^2, \quad \xi_B = \sum_{i=n_A}^{n-2} b_i^2, \text{ and } \quad \xi_{\text{neg}} = b_{n-1}^2.
-$$
-Denote by $\tilde P_{11}^T$ the orthogonal $n_A \times n_A$ matrix obtained by adding $(1/\sqrt{n_A}, \dots, 1/\sqrt{n_A}) \in \R^{n_A}$  as an additional row to $P_{11}^T$. We then get
-\begin{align*}
-	\xi_A  = \sum_{i=1}^{n_A -1} b_i^2 =
-	  & \frac{1}{\sigma^2} \left(\sum_{i=1}^{n_A} \left(\left(\tilde P_{11}^T \mu_A \right)_i \right)^2 - |(1/\sqrt{n_A}, \dots, 1/\sqrt{n_A}) \mu_A|^2 \right) \\
-	= & \frac{1}{\sigma^2} \left(\sum_{i=1}^{n_A} \mu_i^2 - \frac{1}{n_A} \left(\sum_{i=1}^{n_A} \mu_i \right)^2 \right),
-\end{align*}
-where we have used the orthogonality of $\tilde P_{11}$ in the last equality. Similarly, one gets
-$$
-	\xi_B = \frac{1}{\sigma^2} \left(\sum_{i=n_A}^{n-2} \mu_i^2 - \frac{1}{n_B} \left(\sum_{i=n_A}^{n-2} \mu_i \right)^2 \right)
-$$
-and
-$$
-	\xi_{\text{neg}} = \frac{\left(n_B \sum_{i=1}^{n_A} \mu_i - n_A \sum_{i=n_A + 1}^n \mu_i \right)^2}{\sigma^2\left(n_A^2 n_B + n_A n_B^2\right)}.
-$$
-Altogether, we can rewrite \eqref{eq:Z_law} to get
-\begin{align}\label{eq:Z_law2}
-	Z \eqdis
-	 & \frac{\sigma^2}{n-1} \left(
-	\frac{2 n_B}{n_A -1} \chi^2_{n_A -1}(\xi_A)
-	+ \frac{2 n_A}{n_B -1} \tilde \chi^2_{n_B -1}(\xi_B)
-	- (n+1) \bar \chi_1^2(\xi_{\text{neg}})
-	\right),
-\end{align}
-
-where $\chi^2_{n_A -1}(\xi_A), \tilde \chi^2_{n_B -1}(\xi_B)$ and $\bar \chi_1^2(\xi_{\text{neg}})$ are independent.
-In the special case where $\mu_A = (c, \dots, c)^T$ is constant, we get that $\xi_A = 0$ (same for $\mu_B$). If $\mu = (c, \dots, c)^T$, then $\xi_{\text{neg}} = \xi_A = \xi_B = 0$, i.e. we get central chi squared distributions.
-
-
-\paragraph{Hypothesis test}
-In practice, one would check the criterion we have mentioned above and decide if
-a split is good or bad. That is, compare the msep after split to the msep without
-split. However,
-one should also account for randomness. Naturally, we
-should not accept the criterion based on the outcome of the criterion but instead,
-we would like to have some certainty or confidence in the
-outcome before it can be accepted. Say, we want to be $ 1-\alpha\% $ certain that the outcome of $ Z $ is not
-noise. This leads to hypothesis testing. We state the following null-hypothesis
-\begin{align*}
-	H_0: & \mu_A = \mu_B = \mu.
-\end{align*}
-The null-hypothesis states that there is no difference in the mean function in
-the two seperate regions. We then get that the distriubtion of $ Z $ under $ H_0$
-call it $ Z_0 $ and it is is distributed as
-\begin{align*}
-	Z_0 \eqdis & \frac{\sigma^2}{n-1} \left(
-	\frac{2 n_B}{n_A -1} \chi^2_{n_A -1}
-	+ \frac{2 n_A}{n_B -1} \tilde \chi^2_{n_B -1}
-	- (n+1) \bar \chi_1^2
-	\right).
-\end{align*}
-In fact, given the null-hyptohesis $ H_0 $, the individual Chi-Squared random variables are
-centered as well. If the null-hypothesis is true we would expect the outcome of $ Z $ to be
-close to $ 0 $. In contrast, if $ H_0 $ is untrue, then, we expect the
-outcome of $ Z $ to be very negative. If the out come of $ Z $ is realised in the $p$ quantile of $ Z_0 $, we reject $ H_0 $ since the outcome is too extreme
-under $ H_0 $. Find analytical quantile!
-
-In a greedy approach, one stops splitting as soon as the criterion
-(\ref{split_criterion}) is met that is
-
-\begin{align*}
-	Z > 0.
-\end{align*}
-Or equivalently, continue splitting for as long as the criterion
-\begin{align*}
-	Z \leq 0,
-\end{align*}
-is satisfied. Using this simple criterion may be bad for generalization since we are
-not penalizing a model that is more complex. In practice, a tolerance can be
-chosen so that the criterion is more strict. That is, continue splitting as
-long as the criterion
-\begin{align*}
-	Z \leq -\delta,
-\end{align*}
-is satisfied. $ \delta>0 $ is typically chosen heuristically as far as I know.
-This can be stated as splitting for as long as the msep decreases by atleast $
-	\delta $ at each iteration. Larger delta is more restrictive. One can tweak
-$ \delta $ to give better results. A dynamic $ delta $ can also be chosen.
-
-Our approach is equivalent as we continue to split as long as
-the criterion
-\begin{align*}
-	Z \leq q_\alpha ^0
-\end{align*}
-is satisfied. Here, $ q_\alpha^0 $ is the $ \alpha $ quantile under the
-null-hyptohesis $ H_0 $. However, we chose the tolerance via hypothesis testing. Furthermore, the tolerance we choose will change based on the
-sample size in the splitting node and confidence level.
-
-An issue with the approach mentioned, is that the parameter $ \sigma $ needs to
-be specified. An estimate can then be used. In the following section we will
-instead be looking at a ratio, which does suffer the same issue.
-
-
-\subsection{Ratio distribution}
-Let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ and denote by $\P_0$ a probability measure satisfying $H_0$, i.e. $\E_0[Y] = (c, \dots, c)^T$ for some $c \in \R$. In order to find a statistic which does not depend on the unknown parameter $\sigma^2$, we would like to investigate the distribution of the ratio
-$$
-	R = \frac{
-		\frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \bar Y_B)^2
-	}{
-		\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \bar Y)^2
-	}
-$$
-under $\P_0$. For this purpose, we note that for each $r > 0$,
-\begin{align*}
-	\P_0(R > r) = \P_0(Z_r > 0),
-\end{align*}
-where
-$$
-	Z_r = \frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \bar Y_B)^2 - r
-	\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \bar Y)^2.
-$$
-As above, we can write this as a quadratic form
-$$
-	Z_r = Y^T Q_r Y
-$$
-and the eigenvalues of $Q_r$ are given by
-\begin{align*}
-	\lambda_A^r =            & \frac{n_A +1}{n_A -1} - r\frac{n+1}{n-1} = \frac{(n_A + 1)(n-1) - r(n+1)(n_A -1)}{(n-1)(n_A -1)}, \\
-	\lambda_B^r =            & \frac{n_B +1}{n_B -1} - r\frac{n+1}{n-1} = \frac{(n_B + 1)(n-1) - r(n+1)(n_B -1)}{(n-1)(n_B -1)}, \\
-	\lambda_{\text{neg}}^r = & -r\frac{n+1}{n-1},                                                                                \\
-	\lambda_0^r =            & 0
-\end{align*}
-%\begin{align}\label{eq:Stop2}
-%& Z := \\
-%&\frac{n_A + 1}{n_A - 1} \sum_{i=1}^{n_A} (Y_i - \bar Y_A)^2 + \frac{n_B + 1}{n_B - 1} \sum_{i= n_A + 1}^{n} (Y_i - \bar Y_B)^2 - 
-%\frac{n+1}{n -1} \sum_{i=1}^{n} (Y_i - \bar Y)^2 > 0.
-%\end{align}
-%Then $Z > 0$ holds with the same probability as
-%$$
-%\tilde Z :\eqdis \frac{\frac{2 n_B}{n_A -1} \chi^2_{n_A -1}
-%+ \frac{2 n_A}{n_B -1} \tilde \chi^2_{n_B -1}}{(n+1) \bar \chi_1^2} > 1,
-%$$
-%where $\chi^2_{n_A -1}, \tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$ are independent central chi squares and $\tilde Z$ hence follows a generalised $F$-distribution whose quantile function we can compute numerically.
-and the eigenspaces and geometric multiplicities are the same as for the corresponding $Q$-eigenvalues. Hence, under $H_0$,
-\begin{align}\label{eq:Z_r}
-	Z_r \eqdis
-	 & \sigma^2\left(
-	\lambda_A^r \chi^2_{n_A -1}
-	+ \lambda_B^r \tilde \chi^2_{n_B -1}
-	+ \lambda_{\text{neg}}^r \bar \chi_1^2
-	\right)
-\end{align}
-with independence between the central chi squares $\chi^2_{n_A -1}, \tilde \chi^2_{n_B -1}$ and $\bar \chi_1^2$. Denoting the random variable in brackets by $Z_{r, 1}$, it follows that
-$$
-	\P_0(R > r) = \P_0(Z_r > 0) = \P_0(Z_{r, 1} > 0).
-$$
-
-\subsection{Efficient computation of $F_R^0(r)$}
-Let like above
-\begin{align}\label{eq:F_R}
-	F_R^0(r) = \P_0(R \leq r)
-\end{align}
-denote the distribution function of the ratio $R$, given $H_0$ holds true. By the the last section together with [1971, Joseph L. Fleiss, On the Distribution of a Linear Combination of Independent Chi Squares, Corollary and following p.142], \eqref{eq:F_R} is given by
-\begin{align}\label{eq:intExp}
-	\P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n_A -1}{2} \right)\Gamma\left(\frac{n_B -1}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_D (1-x-y)^{\frac{n_A -1}{2} - 1} x^{\frac{n_B -1}{2} - 1} y^{\frac{1}{2} - 1} dx dy,
-\end{align}
-where
-$$
-	D = \{(x, y) \in [0, 1]^2 \colon x + y \leq 1, \lambda_A^r(1-x-y) + \lambda_B^r x + \lambda_{\text{neg}}^r y \leq 0\}.
-$$
-The integral can thus be written as
-$$
-	\int_0^1 \int_0^{u(y)} (1-x-y)^{\frac{n_A -3}{2} } x^{\frac{n_B -3}{2} } y^{-\frac{1}{2} } dx dy,
-$$
-where $u(y) = \max\left(\min\left(1 - y, - \frac{\lambda_A^r + y(\lambda_{\text{neg}}^r - \lambda_A^r)}{\lambda_{B}^r - \lambda_A^r}\right), 0 \right)$, in the case where $\lambda_{B}^r - \lambda_A^r > 0$ (if $\lambda_{B}^r - \lambda_A^r < 0$, change the roles of $A$ and $B$). If $\lambda_A^r = \lambda_B^r$, then
-\begin{align}\label{eq:intExp2}
-	\P_0(Z_{r, 1} \leq 0) = \frac{\Gamma\left(\frac{n -1}{2} \right)}{\Gamma\left(\frac{n -2}{2} \right)\Gamma\left(\frac{1}{2} \right)} \int_0^u (1-x)^{\frac{n -4}{2} }  x^{-\frac{1}{2}} dx,
-\end{align}
-where $u = \max\left(\min\left(1, \frac{\lambda_A^r}{\lambda_A^r - \lambda_{\text{neg}}^r} \right), 0 \right)$, in the case where $\lambda_{\text{neg}}^r- \lambda_A^r > 0$ (otherwise switch the roles of $\lambda_{\text{neg}}^r$ and $\lambda_A^r$).
-
-For $n \approx 350$ and larger, the computation of the integrals in \eqref{eq:intExp} and \eqref{eq:intExp2} become numerically unstable. However, this does not seem to be problematic since for such large values of $n$, the distribution  of $R$ under $H_0$ is close to a point mass at $1$ (cf. Figure \ref{fig:F_R}).
-
-%\begin{figure}[h]
-%\includegraphics[scale=1]{./Figures/F_R.png}
-%\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=.5\textwidth]{./Figures/10_13_F_R.png}\hfill
-	\includegraphics[width=.5\textwidth]{./Figures/160_170_F_R.png}\hfill
-	\caption{$F_R^0(r)$ for $(n_A, n_B) = (10, 13)$ and $(n_A, n_B) = (160, 170)$.}
-	\label{fig:F_R}
-\end{figure}
-
-Figure \ref{fig:F_R_2} shows how the distributions change when $n_A, n_B$ vary while $n$ is fixed. It seems that low quantiles are not much affected by unbalancedness of $(n_A, n_B)$.
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=.5\textwidth]{./Figures/50_50_F_R.png}\hfill
-	\includegraphics[width=.5\textwidth]{./Figures/95_5_F_R.png}\hfill
-	\caption{$F_R^0(r)$ for $(n_A, n_B) = (50, 50)$ and $(n_A, n_B) = (95, 5)$.}
-	\label{fig:F_R_2}
-\end{figure}
-
-\subsection{Likelihood ratio test idea -- not promising}
-As above, let $H_0 : \mu = (c, \dots, c)^T$ for some $c \in \R$ (no signal) and define the alternative hypothesis $H_1 : \mu_A = (c_1, \dots, c_1)^T, \mu_B = (c_2, \dots, c_2)^T$ for some $c_1, c_2 \in \R$ with $c_1 \neq c_2$ (signal). These hypotheses can be equivalently described by
-%\begin{align}
-%Z \eqdis 
-% &\frac{\sigma^2}{n-1} \left( 
-%\frac{2 n_B}{n_A -1} \chi^2_{n_A -1}(\xi_A)
-%+ \frac{2 n_A}{n_B -1} \tilde \chi^2_{n_B -1}(\xi_B)
-%- (n+1) \bar \chi_1^2(\xi_{\text{neg}})
-%\right),
-%\end{align}
-setting $\xi_A = \xi_B = 0$ in \eqref{eq:Z_law2} and
-$$
-	H_0 : \xi_{\text{neg}} = 0, \quad H_1 : \xi_{\text{neg}} > 0.
-$$
-Denoting by $z \in \R$ a realisation of $Z$, we get a generalised likelihood-ratio of the form
-$$
-	\frac{
-		\sup_{\xi_{\text{neg}} > 0} \sum_{j=0}^{\infty} K_j(\xi_{\text{neg}}) \frac{1}{2^{(n-1 + 2j)/2} \Gamma \left( (n-1 + 2j)/2 \right) } (\frac{z}{\sigma^2})^{(n-1 + 2j)/2 - 1} \exp\left({-\frac{z}{2 \sigma^2}} \right)
-	}{
-		\sum_{j=0}^{\infty} K_j(0) \frac{1}{2^{(n-1 + 2j)/2} \Gamma \left( (n-1 + 2j)/2 \right) } (\frac{z}{\sigma^2})^{(n-1 + 2j)/2 - 1} \exp\left({-\frac{z}{2 \sigma^2}} \right)
-	}
-$$
-following [On the Distribution of Linear Combinations of Non-central Chi-Squares,
-		By DAVID A. HARVILLE]. Here, $K_j$ are functions depending on $n_A, n_B$ and $\xi_{\text{neg}}$, but not on $z$.
-
-This quantity however is not independent of $\sigma^2$, which is why the likelihood ratio approach seems to be a bad ansatz if we want to avoid estimating $\sigma^2$.
-
-\section{Hypothesis Testing}
-Following the arguments in the previous section, we argue the following. In the
-ratio test, we look at relative reduction in msep instead of absolute
-difference. The criterion will instead be to continue as long as the relative
-reduction $r^* \leq r^0_\alpha$. Since finding the quantile can be difficult
-for general distributions of of msep. We can make it simpler in our case by
-looking at a linear combination of chi-squares. The general CDF can be computed
-from \cite{pm_linearchi} and computing the CDF for $R $ is equivalent to
-
-\begin{align*}
-	F_R^0(r) = \P(R^0 \leq r) = \P(Z_r^0 \leq 0)
-\end{align*}
-In practice, one should compute $ r^* $ and then $ \P(Z_{r^*}^0 \leq 0) $.
-
-
-\section{Limiting distribution of Z}
-In the limit $ n_a, n_b \to \infty  $, we get that the eigenvalues of all tend
-to $ 0 $ except for $ \lambda_neg = -1 $ in this limiting case, the
-distribution for $ Z_\infty $ is
-
-\begin{align*}
-	Z_\infty \eqdis -\sigma^2 \bar \chi_1^2
+  &\mathbb{P}(\textrm{rejecting some } H_0^{(i)} | H_0^{(i)} \textrm{ is true for
+  some }i) = \\
+  = &\mathbb{P}(\cup_i \{  \textrm{Reject } H_0^{(i)} \} | H_0^{(i)} \textrm{ is
+  true for some $ i $}) = \\ 
+  \leq  & \sum_{i=1}^{N}\mathbb {P}(\{ p_i \leq \alpha \} | H_0^{(i)} 
+  \textrm{ is true} ) \leq N\alpha \leq \tilde{\alpha}.
 \end{align*}
 
-Can we say something about this? Check that this is actually true.
+Where, $ N $ is the number of nodes in the tree and $ \tilde{\alpha} $ measures
+the total uncertainty. A natural choice for $ \alpha $  is then $ \alpha =
+\tilde{\alpha}/N $. However, if the number of nodes $ N $ in the tree is not
+deterministic, this choice of $ \alpha $ is not suitable. 
 
+Instead, summing the p-values $ p_i $ for each node of the tree can be used as $
+\alpha $. In the spririt of the top-down and bottomn-up, this means that the
+procedure stops just before or after the condition $ \sum_{i=1}^{} p_i \leq
+\tilde{\alpha } $ is satisfied. This is a reasonable stopping rule for
+constructing trees. A potential issue with this approach is the order in which
+we consider splits. For instance, building a tree top-down, at each recursion
+step, there will be $ M $ splits to consider, in which order should the p-values
+for these splits be added to the total? Further, say we accept a split, should
+the subsequent split be considerd as well? There is no best way to do this. A
+similar problem arises for pruning. Therefore, a \textit{splitting sequence}
+needs to be specified. 
 
+If we can consider \textit{cost complexty pruning} we can reconcile this
+problem, since the algorithm specifies a splitting sequence. 
 
-\paragraph{Limit update (I think we were wrong about this the last time...)}
-Let $n \to \infty$ and assume that $n_A /n \to a \in (0, 1)$, $n_B/n \to 1 - a$. We want to investigate the weak limit of $Z_{r, 1}$ under $H_0$, i.e. the limit of
-\begin{align}\label{eq:Z_lim}
-	\tilde \lambda_A^r \frac{\chi_{n_A - 1}}{n_A - 1} + \tilde \lambda_B^r \frac{\tilde \chi_{n_B - 1}}{n_B - 1} + \lambda_{\text{neg}}^r \bar \chi_{1},
-\end{align}
-where all chi-squares are independent and
-\begin{align*}
-	\tilde \lambda_A^r = & \frac{(n_A + 1)(n-1) - r(n+1)(n_A-1)}{n-1},                                                    \\
-	\tilde \lambda_B^r = & \frac{(n_B + 1)(n-1) - r(n+1)(n_B-1)}{n-1}, \quad \lambda_{\text{neg}}^r = -r \frac{n+1}{n-1}.
-\end{align*}
-The first two standardised chi-squares in \eqref{eq:Z_lim} each converge to $1$ in probability. Moreover,
-\begin{align*}
-	 & \lambda_{\text{neg}}^r \to - r,                                          \\
-	 & \tilde \lambda_A^r = \frac{2 n_B}{n-1} + \frac{(1-r)(n+1)(n_A - 1)}{n-1}
-	\to
-	\begin{cases}
-		2(1-a),   & r=1  \\
-		- \infty, & r >1 \\
-		+ \infty, & r <1
-	\end{cases}
-\end{align*}
-and similarly
-\begin{align*}
-	\tilde \lambda_B^r
-	\to
-	\begin{cases}
-		2a,       & r=1   \\
-		- \infty, & r >1  \\
-		+ \infty, & r <1.
-	\end{cases}
-\end{align*}
-Hence, under $H_0$, we get convergence in distribution by the Slutzky Theorem
-\begin{align*}
-	Z_{r, 1} \to Z_{r, 1}^\infty =
-	\begin{cases}
-		2 - \bar \chi_{1}, & r=1   \\
-		- \infty,          & r >1  \\
-		+ \infty,          & r <1.
-	\end{cases}
-\end{align*}
-Since $Z_{r, 1}^\infty$ has no mass at $0$ for any $r > 0$, this implies that
-\begin{align*}
-	F_R^0(r) = \P_0(Z_{r, 1} \leq 0) \to \P_0(Z_{r, 1}^{\infty} \leq 0) =
-	\begin{cases}
-		\P(\bar \chi_{1} \geq 2), & r=1   \\
-		1,                        & r >1  \\
-		0,                        & r <1.
-	\end{cases}
-\end{align*}
+\cite{jensen1997adjusting} proposes the idea of considering multiple testing
+within a split when there are multiple covariates considered. In fact, a split
+is determined by comparison to other covariates. For each covariate, a best
+split is determined, then the chosen split is the best among these individual
+choices. In this case, a multiple test is being performed. If we consider this,
+then we can view our problem of constructing a tree as a multiple-multiple test.
+Should we once again use a Bonfferoni bound $ \alpha = \tilde{\alpha}/pN $,
+where $ p $ is the number of covariates and $ N $ is the number of nodes. If
+there are many covariates, will this be too restrictive?
 
-This shows that the ratio $R$ converges in probability to $1$ under $H_0$. This is in line with the numerical results in Figure \ref{fig:F_R}. Note that the limit does not depend on $a$.
+There are many configurations we could consider, however, we will focus on the
+following:
+\begin{itemize}
+  \item Expand this more
+  \item Recursive splitting + summing the smallest p-value.
+  \item ccp-pruning  + summing p-values.
+  \item boosting with fixed learner size + summing p-values. 
+  \item Adaptive(building with recursion and sum limit) boosting + summing p-values for trees. 
+\end{itemize}
 
-\section{Building Trees}
+Now that we have determined the configurations that should be considered, we can
+focus on how we should construct the hypothesis test. We have tested creating a
+test statisic using an estimate of $ MSEP $ however we see that this results in
+some sort of selective inference and since we want to avoid selective inferece
+all togehter, we have chosen to go ahead with the test proposed by
+\cite{hawkins1977testing}. We have not decided yet wheter this test-statistic is
+free of selective inference but that is the conjecture. 
 
-\subsection{Breiman minimal cost-complexity pruning}
+\subsection{CART}
+
+Below, are some descriptions on various algorithms that may be used in this
+project. 
+
+\subsubsection{Cost-Complexity Pruning}
+
 \label{sec:ccp}
+
 Breiman's method of minimal cost-complexity builds a full tree and sequencially
 prunes nodes to construct a tree that is less complex and that is supposed to
 generalize better. 
 
-If we denote $ T $ as a tree and define $ R(T) $ as the
-weighted loss contributions from the leaves of $ T $, we can define a penalized
-loss $ R_{\alpha}(T) = R(T) + \alpha|T|$, where $ |T| $ is the number of leaves
-of the tree $ T $ and $ \alpha $ is some hyper-parameter that penalizes
-complexity. Breiman's algorithm produces the best \textbf{subtree} for a given $ \alpha $ that minimizes
-$ R_{\alpha}(T) $. Furthermore, it can be shown that the best trees are nested 
-subtrees $ T_k $ of $ T $ such that each is optimal for an interval of $ \alpha
-$. So there is a sequence $ \{\alpha_k \} $ 
+If we denote $ T $ as a tree and define $ R(T) $ as the weighted loss
+contributions from the leaves of $ T $, we can define a penalized loss $
+R_{\alpha}(T) = R(T) + \alpha|T|$, where $ |T| $ is the number of leaves of the
+tree $ T $ and $ \alpha $ is some hyper-parameter that penalizes complexity.
+Breiman's algorithm produces the best \textbf{subtree} for a given $ \alpha $
+that minimizes $ R_{\alpha}(T) $. Furthermore, it can be shown that the best
+trees are nested subtrees $ T_k $ of $ T $ such that each is optimal for an
+interval of $ \alpha $. That is, there exits a sequence $ \{\alpha_k \} $ 
 
 \begin{align}
  0 = \alpha_0 < \alpha_1 < \cdots < \alpha_m < \infty 
@@ -784,7 +205,7 @@ tree $ T_i $, denote all non-terminal nodes with some $ t $ and calculate the
 gain $ g(t, T^{(t)}) = \frac{R(t) - R(T^{(t)})}{|T^{(t)}| - 1} $ for all $ t $, where $ R(t) $ is
 the loss at the node $ t $ treated as a trivial tree and $ R(T^{(t)}) $ is the
 loss of the tree that is rooted at $ t $. Then $\alpha_i = \underset{t}\min \; 
-g(t,T^{(t)})$. Pruning all nodes where the $ g(\cdot) = \alpha_i $ produces a new
+g(t,T^{(t)})$. Pruning all nodes where the $ g(\cdot) \geq  \alpha_i $ produces a new
 tree $ T_{i+1} $. Now perform the same procedure on $ T_{i+1} $ and so on until
 the trivial tree is reached. This results in a sequence $ \{\alpha_k \} $ and a
 sequnce of nested trees $ \{ T_k \} $. Two remarks can be made. Firstly, the procedure
@@ -792,23 +213,26 @@ handles ties in gain by choosing the smallest tree as next in line. Second, the
 gain is attained from simple algebra by solving for $ \alpha $ in the equation
 $R_{\alpha}(t) - R_{\alpha}(T^{(t)}) = 0 $.
 
-\subsection{Adaptive Boosting}
 
-When boosting regression trees, there are in general two parameters that need to
-be decided. First, the complexity of the weak learners, e.g. number of leaves
-ofr regression trees, at each boosting step and second
-the stopping criterion, that is, step $ k $ to stop boosting. The complexity of
-the tree is choosen heuristically.
-However, the stopping criterion is typically decided using cross validation. Where the
-training is stopped as soon as the out-of-sample error starts increasing.
-Adaptive Boosting Trees(ABT) tackles this problem by proposing an algorithm for boosting
-with a built-in stopping rule that is based on the complexity of the weak
-learner. That is, it is sufficient to choose a parameter $ J $ and the procedure
-will produce boosted trees with at most complexity $ J $ and will stop. 
+\subsection{Boosting}
 
-ABT leverages Breiman's pruning method (see \ref{sec:ccp}) to produce learners of at most $ J $
-leaves. That is, at each boosting iteration a tree is fitted by choosing the subtree $ T_k $
-of $ T $ such that 
+\subsubsection{Adaptive Boosting}
+
+When boosting regression trees in the traditional sense, there are two
+parameters that need to be decided. First, the complexity of the weak learners,
+e.g. number of leaves of the trees, at each boosting step and second the
+stopping criterion, that is, step $ k $ to stop boosting. The complexity of the
+tree is choosen heuristically. However, the stopping criterion is typically
+decided using cross validation. Where the training is stopped as soon as the
+out-of-sample error starts increasing. Adaptive Boosting Trees (ABT) tackles this
+problem by proposing an algorithm for boosting with a built-in stopping rule
+that is based on the complexity of the weak learner. That is, it is sufficient
+to choose a parameter $ J $ and the procedure will produce boosted trees with at
+most complexity $ J $ and it is conjectured to stop in finite time. 
+
+ABT leverages Breiman's pruning method (see \ref{sec:ccp}) to produce learners
+of at most $ J $ leaves. That is, at each boosting iteration a tree is fitted by
+choosing the subtree $ T_k $ of $ T $ such that 
 
 \begin{align*}
   \label{eq:abtrule} 
@@ -819,78 +243,18 @@ If $ |T_k| = 1$ then the procedure stops. The reason for stopping when this
 criterion is met, is that the intercept will be identically zero, thus, boosting
 after this criterion is met will further produce intercepts of zero which is
 unecessary. Note that in the ABT paper they present a general framework for
-choosing the response that should be fit at each iteration given a deviance loss. However
-when an $ L^2 $ loss is considered, the reponse at each iteration is the
-residuals.
+choosing the response that should be fit at each iteration given a deviance
+loss. However when an $ L^2 $ loss is considered, the reponse at each iteration
+is the residuals.
 
 A problem raised in the ABT paper is that their procedure sometimes stops early,
 "stuck in local optima". They propose using a bagging fraction $ \beta $ to
 overcome this issue.
 
-\subsubsection{Varying sample sizes}
+\subsubsection{P-Boosting}
+Adaptive or non adaptive boosting using inference.
 
-It is interesting to see how this method performs for ranges of different
-sample sizes. We simulate data for studying this method in the following way.
-First we define the underlying mean as
-
-\begin{align*}
-  \mu(x) = 10 + 10\mathbf{1}_{\{x> 0.7\}} -25\mathbf{1}_{\{x < 0.2\}} +
-  3\mathbf{1}_{\{x<0.5\}}.
-\end{align*}
-
-This gives us $ 4 $ levels for the response.The data point is then distributed in the following way
-$ X \sim Unif([0,1]) $ and $ Y|X=x \sim N(\mu(x), \sigma^1)$, for some $ \sigma
-$ that controls the level of noise. For the different sample sizes we get the
-following statistics. 
-
-
-
-An interesting observation is that when $ J >= 4 $, we get weird behaviours from
-ABT. This makes sense since we are building trees that are more complex than the
-underlying data.
-
-
-
-\begin{enumerate}
-
-\item Plot of MSEP for different sample sizes
-\item Plot of MSEP for number of iterations for these sample sizes
-
-\end{enumerate}
-
-\subsubsection{Connection to MSEP p-values}
-
-Is there a connection between the p-values we calculate and the stopping
-mechanism in ABT? A simulation study gives the following results.
-
-
-
-\subsection{Gradient boosting with MSEP inference}
-
-We propose a method for stopping tree building, using inference. Where we decide on a
-significance level $ \tilde\alpha $ and bound the tree building process using
-Bonferroni type arguments. The stopping rule is then, to stop when the
-cummulative sum of
-the $ p $-values at each split exceeds $ \tilde\alpha $. However, one caveat is that we
-need to decide on a splitting sequence for which we sum the $ p $-values.
-Heuristically, we can choose the trees produced by Breiman's algorithm as a sequence splits.
-
-An alternative method would be to boost residuals using depth $ 1 $ trees as
-weak learners. This solves the problem of choosing a sequence, since the
-sequence is the natural boosting iterations. Then, a stopping criterion is 
-to stop boosting when the cummulative sum of $ p $-values at each boosting
-iteration exceeds $ \tilde\alpha $. It is then possible to resuse our hypothesis
-test. However, we have not thought out how to incorporate more complex learners.
-Maybe Breiman + inference + boosting. In some sense altering ABT?
-
-An intial simulation study results in the following figures.
-
-
-\begin{figure}
-
-\end{figure}
-
-
-
+\bibliographystyle{apalike}
+\bibliography{refs}
 
 \end{document}
