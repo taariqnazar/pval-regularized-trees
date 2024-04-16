@@ -4,6 +4,7 @@
 !.gitignore
 !.github/**
 !code/*
+!code/simstudy/*
 !*/
 !notes.tex
 !old_notes.tex
