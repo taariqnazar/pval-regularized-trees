@@ -1,6 +1,7 @@
 import numpy as np 
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
+from scipy.stats import norm
 
 def generate_neufeldt_data(a,b, n=200, p=10, sigma=5):
     """
@@ -42,3 +43,62 @@ def build_ccp_model(X,y, cv_frac=0.5):
         return trees[max_ind]
     else:
         return 0
+
+def get_YD_statistics(cart):
+    YD_statistics = []
+    node_count = cart.tree_.node_count
+    children_left = cart.tree_.children_left
+    children_right = cart.tree_.children_right
+    impurities = cart.tree_.impurity
+    sample_size = cart.tree_.n_node_samples
+    for k in range(node_count):
+        if(children_left[k] == -1):
+            YD_statistics.append(-1)
+            continue
+        n = sample_size[k]
+        n_left = sample_size[children_left[k]]
+        n_right = sample_size[children_right[k]]
+        S = n*impurities[k]
+        S_left = n_left*impurities[children_left[k]]
+        S_right = n_right*impurities[children_right[k]]
+        YD_statistic = (S - S_left - S_right)/(S/n)
+        YD_statistics.append(YD_statistic)      
+    return YD_statistics
+
+def is_subtree_of_T_star(cart, delta):
+    YD_statistics = get_YD_statistics(cart)
+    p_values = [Psi(cart.tree_.n_node_samples[k], YD_statistics[k], d) if (YD_statistics[k] != -1) else -1 for k in range(len(YD_statistics))]
+    number_of_acceptances = sum([1 if p > delta else 0 for p in p_values])
+    if(number_of_acceptances > 0):
+        return False
+    else:
+        return True
+
+def Psi(n, u, d):
+    K = np.sqrt(u) - ((2*(np.log(np.log(n))))**(-1/2))*(np.log(np.log(np.log(n))) + np.log(2))
+    p = d*(1 - norm.cdf(K)**(2*np.log(n/2)))
+    return p
+
+def get_optimal_leaves(cart, delta, d):
+    YD_statistics = get_YD_statistics(cart)
+    p_values = [Psi(cart.tree_.n_node_samples[k], YD_statistics[k], d) if (YD_statistics[k] != -1) else -1 for k in range(len(YD_statistics))]
+    stack = [0]
+    leaves_in_optimal_tree = []
+    while stack != []:
+        node = stack.pop()
+        if p_values[node] > delta or p_values[node] == -1:
+            leaves_in_optimal_tree.append(node)
+        else:
+            stack.append(cart.tree_.children_right[node])
+            stack.append(cart.tree_.children_left[node])
+    return leaves_in_optimal_tree
+
+def prune(nodes_to_prune, tree):
+    while nodes_to_prune != []:
+        n = nodes_to_prune.pop()
+        if(tree.tree_.children_left[n] != -1):
+            nodes_to_prune.append(tree.tree_.children_left[n])
+            tree.tree_.children_left[n] = -1
+        if(tree.tree_.children_right[n] != -1):
+            nodes_to_prune.append(tree.tree_.children_right[n])
+            tree.tree_.children_right[n] = -1
