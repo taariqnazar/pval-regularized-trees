@@ -79,6 +79,10 @@ def Psi(n, u, d):
     p = d*(1 - norm.cdf(K)**(2*np.log(n/2)))
     return p
 
+def get_p_values(cart, d):
+    YD_statistics = get_YD_statistics(cart)
+    return [Psi(cart.tree_.n_node_samples[k], YD_statistics[k], d) if (YD_statistics[k] != -1) else -1 for k in range(len(YD_statistics))]
+
 def get_optimal_leaves(cart, delta, d):
     YD_statistics = get_YD_statistics(cart)
     p_values = [Psi(cart.tree_.n_node_samples[k], YD_statistics[k], d) if (YD_statistics[k] != -1) else -1 for k in range(len(YD_statistics))]
