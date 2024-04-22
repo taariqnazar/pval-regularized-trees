@@ -22,20 +22,13 @@ delta = .05
 
 #### Load Data ####
 
-housing = fetch_california_housing()
-feature_names =  housing.feature_names
+X, Y, feature_names = utils.load_cal_housing()
 d = len(feature_names)
-df = pandas.DataFrame(housing.data)
-df['MedHouseVal'] = housing.target
-df = df[df['MedHouseVal'] <= 5]  
-df = df.sample(frac=1).reset_index(drop=True)
-
-X = df.loc[:, df.columns != 'MedHouseVal']
-Y = df['MedHouseVal']
 
 mid = int(np.floor(len(Y)*7/8))
 
 X_train, Y_train = X[mid:], Y[mid:]
+print(len(Y_train))
 X_test, Y_test = X[:mid], Y[:mid]
 
 print('samplesize for mu: ', len(X_train))
@@ -55,6 +48,7 @@ print(msep_sr, mse_sr)
 print(cart.score(X_test, Y_test))
 ccp_alphas = cart.cost_complexity_pruning_path(X_train, Y_train)['ccp_alphas']
 #print(ccp_alphas)
+print('complexity Tstar', len(utils.get_optimal_leaves(cart, delta, d)))
 
 utils.prune_to_T_star(cart, delta, d)
 pred_test_T_star = cart.predict(X_test)
@@ -91,8 +85,8 @@ for k in range(len(flipped_ccps)):
 		min_subtree_index_05 = k
 	if (utils.is_subtree_of_T_star(cart1, 0.1, d)):
 		min_subtree_index_10 = k
-
-
+	if (utils.is_subtree_of_T_star(cart1, 0.3, d)):
+		min_subtree_index_30 = k
 
 
 
@@ -113,7 +107,7 @@ plt.plot(mses, color = 'red')
 #plt.plot(R_sqs, color = 'green')
 #plt.plot(is_subtree)
 
-plt.axvline(x = min_subtree_index_0001, color = 'lightgreen', label = 'delta = 0.0001')
+plt.axvline(x = min_subtree_index_30, color = 'lightgreen', label = 'delta = 0.3')
 plt.axvline(x = min_subtree_index_05, color = 'green', label = 'delta = 0.05')
 plt.axhline(y = MSEP_T_star, color = 'purple')
 plt.legend()
@@ -128,7 +122,7 @@ plt.show()
 
 # Regression function
 
-mu = DecisionTreeRegressor(max_depth=K, min_samples_leaf = min_dp_leaf, random_state=0, ccp_alpha = 0.004316358590290614).fit(X_train, Y_train)
+mu = DecisionTreeRegressor(max_depth=K, min_samples_leaf = min_dp_leaf, random_state=0, ccp_alpha = flipped_ccps[min_subtree_index_05]).fit(X_train, Y_train)
 
 true_n_leaves = mu.get_n_leaves()
 print('true number leaves', true_n_leaves)
@@ -186,5 +180,5 @@ plt.axvline(x = true_n_leaves, color = 'green')
 
 #tree.plot_tree(mu, fontsize = 7, impurity = False, label = 'none', feature_names = feature_names)
 
-plt.show()
+#plt.show()
 

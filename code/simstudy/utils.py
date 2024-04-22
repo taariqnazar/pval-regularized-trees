@@ -2,6 +2,8 @@ import numpy as np
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
 from scipy.stats import norm
+from sklearn.datasets import fetch_california_housing
+import pandas
 
 def generate_neufeldt_data(a,b, n=200, p=10, sigma=5):
     """
@@ -113,6 +115,17 @@ def get_MSE(Y, pred):
 def prune_to_T_star(cart, delta, d):
     optimal_leaves = get_optimal_leaves(cart, delta, d)
     prune(optimal_leaves, cart)
+
+def load_cal_housing():
+    housing = fetch_california_housing()
+    feature_names =  housing.feature_names
+    df = pandas.DataFrame(housing.data)
+    df['MedHouseVal'] = housing.target
+    df = df[df['MedHouseVal'] <= 5]  
+    df = df.sample(frac=1).reset_index(drop=True)
+    X = df.loc[:, df.columns != 'MedHouseVal']
+    Y = df['MedHouseVal']
+    return X, Y, feature_names
 
 
     
