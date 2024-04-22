@@ -106,3 +106,13 @@ def prune(nodes_to_prune, tree):
         if(tree.tree_.children_right[n] != -1):
             nodes_to_prune.append(tree.tree_.children_right[n])
             tree.tree_.children_right[n] = -1
+
+def get_MSE(Y, pred):
+    return sum([(y - p)**2 for (y,p) in zip(Y, pred)])/len(Y)
+
+def prune_to_T_star(cart, delta, d):
+    optimal_leaves = get_optimal_leaves(cart, delta, d)
+    prune(optimal_leaves, cart)
+
+
+    
