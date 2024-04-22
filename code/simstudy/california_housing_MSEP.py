@@ -24,41 +24,21 @@ delta = .05
 
 housing = fetch_california_housing()
 feature_names =  housing.feature_names
-#print(housing.target_names)
 d = len(feature_names)
-#print(feature_names)
-
-
 df = pandas.DataFrame(housing.data)
 df['MedHouseVal'] = housing.target
-
 df = df[df['MedHouseVal'] <= 5]  
-
 df = df.sample(frac=1).reset_index(drop=True)
-
-#print(df[:10])
 
 X = df.loc[:, df.columns != 'MedHouseVal']
 Y = df['MedHouseVal']
 
-#print(X[:10])
-#print(Y[:10])
-
 mid = int(np.floor(len(Y)*7/8))
-
-
-
 
 X_train, Y_train = X[mid:], Y[mid:]
 X_test, Y_test = X[:mid], Y[:mid]
 
 print('samplesize for mu: ', len(X_train))
-
-#print(X_train, Y_train)
-
-#print(X_test, Y_test)
-
-
 
 
 #### CART tree ####
@@ -66,38 +46,27 @@ print('samplesize for mu: ', len(X_train))
 K = 10
 min_dp_leaf = 10
 
-# optimal ccp = 0.017
 cart = DecisionTreeRegressor(max_depth=K, min_samples_leaf = min_dp_leaf, random_state=0, ccp_alpha = 0).fit(X_train, Y_train)
 pred_test = cart.predict(X_test)
 pred_train = cart.predict(X_train)
-msep_sr = np.sqrt(sum([(p - y)**2 for (p, y) in zip(pred_test, Y_test)])/len(Y_test))
-mse_sr = np.sqrt(sum([(p - y)**2 for (p, y) in zip(pred_train, Y_train)])/len(Y_train))
-#print(msep_sr, mse_sr)
-#print(cart.score(X_test, Y_test))
+msep_sr = utils.get_MSE(Y_test, pred_test)
+mse_sr = utils.get_MSE(Y_train, pred_train)
+print(msep_sr, mse_sr)
+print(cart.score(X_test, Y_test))
 ccp_alphas = cart.cost_complexity_pruning_path(X_train, Y_train)['ccp_alphas']
 #print(ccp_alphas)
 
+utils.prune_to_T_star(cart, delta, d)
+pred_test_T_star = cart.predict(X_test)
+MSEP_T_star = utils.get_MSE(Y_test, pred_test_T_star)
+print('MSEP_T_star', MSEP_T_star)
 
-
-	
-
-def get_optimal_MSEP(cart):
-	return
-
-
-### Taariqs pruning code ####
-
- 
- 
-# nodes to prune
-nts = [index for index, value in enumerate(get_ps(tr) >=alpha) if value]
-prune(tr, nts)
 
 
 #### Plot ####
 
 #tree.plot_tree(cart, fontsize = 7, impurity = False, label = 'none', feature_names = feature_names)
-'''
+
 mseps = []
 mses = []
 R_sqs = []
@@ -111,14 +80,16 @@ for k in range(len(flipped_ccps)):
 	cart1 = DecisionTreeRegressor(max_depth=K, min_samples_leaf = min_dp_leaf, random_state=0, ccp_alpha = flipped_ccps[k]).fit(X_train, Y_train)
 	pred_test = cart1.predict(X_test)
 	pred_train = cart1.predict(X_train)
-	mseps.append(np.sqrt(sum([(p - y)**2 for (p, y) in zip(pred_test, Y_test)])/len(Y_test)))
-	mses.append(np.sqrt(sum([(p - y)**2 for (p, y) in zip(pred_train, Y_train)])/len(Y_train)))
+	mseps.append(utils.get_MSE(Y_test, pred_test))
+	mses.append(utils.get_MSE(Y_train, pred_train))
 	R_sqs.append(cart1.score(X_test, Y_test))
-	if (is_subtree_of_T_star(cart1, 0.001)):
+	if (utils.is_subtree_of_T_star(cart1, 0.0001, d)):
+		min_subtree_index_0001 = k
+	if (utils.is_subtree_of_T_star(cart1, 0.001, d)):
 		min_subtree_index_001 = k
-	if (is_subtree_of_T_star(cart1, 0.05)):
+	if (utils.is_subtree_of_T_star(cart1, 0.05, d)):
 		min_subtree_index_05 = k
-	if (is_subtree_of_T_star(cart1, 0.1)):
+	if (utils.is_subtree_of_T_star(cart1, 0.1, d)):
 		min_subtree_index_10 = k
 
 
@@ -142,15 +113,16 @@ plt.plot(mses, color = 'red')
 #plt.plot(R_sqs, color = 'green')
 #plt.plot(is_subtree)
 
-plt.axvline(x = min_subtree_index_001, color = 'lightgreen', label = 'delta = 0.001')
+plt.axvline(x = min_subtree_index_0001, color = 'lightgreen', label = 'delta = 0.0001')
 plt.axvline(x = min_subtree_index_05, color = 'green', label = 'delta = 0.05')
+plt.axhline(y = MSEP_T_star, color = 'purple')
 plt.legend()
 #plt.hist(Y, bins = 100)
 
 
 
 plt.show()
-'''
+
 
 ##### Simulation study ####
 
@@ -198,7 +170,7 @@ for m in range(M):
 		Y_m.append(np.random.normal(mus_m[l], sigma_sq))
 	Y_m = np.array(Y_m)
 	T = DecisionTreeRegressor(max_depth=K, min_samples_leaf = 10).fit(X_m, Y_m)
-	n_optimal = len(get_optimal_leaves(T))
+	n_optimal = len(utils.get_optimal_leaves(T, delta, d))
 	n_leaves.append(n_optimal)
 
 

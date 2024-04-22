@@ -65,9 +65,9 @@ def get_YD_statistics(cart):
         YD_statistics.append(YD_statistic)      
     return YD_statistics
 
-def is_subtree_of_T_star(cart, delta):
+def is_subtree_of_T_star(cart, delta, d):
     YD_statistics = get_YD_statistics(cart)
-    p_values = [Psi(cart.tree_.n_node_samples[k], YD_statistics[k], d) if (YD_statistics[k] != -1) else -1 for k in range(len(YD_statistics))]
+    p_values = get_p_values(cart, d)
     number_of_acceptances = sum([1 if p > delta else 0 for p in p_values])
     if(number_of_acceptances > 0):
         return False
