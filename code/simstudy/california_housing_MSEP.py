@@ -178,7 +178,7 @@ sigma_sq = 0.66**2
 np.random.seed(1)
 
 # number of simulations
-M = 500
+M = 1
 
 # sample size per simulation
 N = 2640
