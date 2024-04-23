@@ -116,6 +116,20 @@ def prune_to_T_star(cart, delta, d):
     optimal_leaves = get_optimal_leaves(cart, delta, d)
     prune(optimal_leaves, cart)
 
+def get_leaves(tree):
+    children_left = tree.tree_.children_left
+    leaves = []
+    for k in range(len(children_left)):
+        if children_left[k] == -1:
+            leaves.append(k)
+    return leaves
+
+def get_cum_p_val(tree, d):
+    p_vals = get_p_values(tree, d)
+    #print(p_vals)
+    return sum([p for p in p_vals if p != -1])
+
+
 def load_cal_housing():
     housing = fetch_california_housing()
     feature_names =  housing.feature_names

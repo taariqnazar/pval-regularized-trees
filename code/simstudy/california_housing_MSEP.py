@@ -65,10 +65,12 @@ mseps = []
 mses = []
 R_sqs = []
 is_subtree = []
+cum_pvals = []
 flipped_ccps = np.flip(ccp_alphas)
 min_subtree_index_001 = 0
 min_subtree_index_05 = 0
 min_subtree_index_10 = 0
+max_subtree_cum_pvals = 0
 #print(flipped_ccps)
 for k in range(len(flipped_ccps)):
 	cart1 = DecisionTreeRegressor(max_depth=K, min_samples_leaf = min_dp_leaf, random_state=0, ccp_alpha = flipped_ccps[k]).fit(X_train, Y_train)
@@ -77,6 +79,11 @@ for k in range(len(flipped_ccps)):
 	mseps.append(utils.get_MSE(Y_test, pred_test))
 	mses.append(utils.get_MSE(Y_train, pred_train))
 	R_sqs.append(cart1.score(X_test, Y_test))
+	cum_pval = utils.get_cum_p_val(cart1, d)
+	cum_pvals.append(cum_pval)
+	#print('cum p_val: ', utils.get_cum_p_val(cart1, d))
+	if (cum_pval <= 0.05):
+		max_subtree_cum_pvals = k
 	if (utils.is_subtree_of_T_star(cart1, 0.0001, d)):
 		min_subtree_index_0001 = k
 	if (utils.is_subtree_of_T_star(cart1, 0.001, d)):
@@ -89,7 +96,7 @@ for k in range(len(flipped_ccps)):
 		min_subtree_index_30 = k
 
 
-
+print('index cum pvalue', max_subtree_cum_pvals)
 print(min_subtree_index_05)
 print(flipped_ccps[min_subtree_index_05]) 
 #0.001148998713409591
@@ -109,6 +116,7 @@ plt.plot(mses, color = 'red')
 
 plt.axvline(x = min_subtree_index_30, color = 'lightgreen', label = 'delta = 0.3')
 plt.axvline(x = min_subtree_index_05, color = 'green', label = 'delta = 0.05')
+plt.axvline(x = max_subtree_cum_pvals, color = 'darkgreen', label = 'delta = 0.05, cum_pval')
 plt.axhline(y = MSEP_T_star, color = 'purple')
 plt.legend()
 #plt.hist(Y, bins = 100)
@@ -180,5 +188,11 @@ plt.axvline(x = true_n_leaves, color = 'green')
 
 #tree.plot_tree(mu, fontsize = 7, impurity = False, label = 'none', feature_names = feature_names)
 
-#plt.show()
+plt.show()
 
+
+plt.plot(cum_pvals[:22])
+plt.axhline(y = 0.05, color = 'purple')
+plt.axvline(x = max_subtree_cum_pvals, color = 'darkgreen', label = 'delta = 0.05, cum_pval')
+
+plt.show()
