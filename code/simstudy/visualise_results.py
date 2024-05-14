@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 # Import data 
-results_file = "./results/ourtree_200_resuslts.txt"
+results_file = "./results/ourtree_10000_resuslts.txt"
 
 if __name__ == "__main__":
     with open(results_file) as file:
