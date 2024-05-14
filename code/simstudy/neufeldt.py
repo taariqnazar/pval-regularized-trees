@@ -1,22 +1,7 @@
-"""
-# The general flow of test
--Import data
--Build model
--Evaluate model 
--Plot Models
+from sklearn.tree import plot_tree
 
-Hothorn:
-    - Unbiased selection rule( This follows for us from Shih )
-    - Suffers from overfitting
-    - Prediction accuracy in comparison to something?
-"""
-
-import numpy as np 
 import matplotlib.pyplot as plt
-
-from sklearn.tree import DecisionTreeRegressor, plot_tree
-from sklearn.model_selection import train_test_split
-from utils import generate_neufeldt_data, build_ccp_model
+from utils import build_our_model, generate_neufeldt_data, build_ccp_model, get_leaf_nodes
 
 """
 def contingency_table(tree: DecisionTreeRegressor, X, true_split):
@@ -43,19 +28,23 @@ if __name__ == '__main__':
     print("Neufeldt simulation study, comparison to our tree")
     a = [0.5,1,2]
     b = [i+1 for i in range(10)]
-    for a_ in a:
-        for b_ in b:
+
+    results = {}
+    for a_ in a[::-1]:
+        for b_ in b[::-1]:
             print(f"results for a={a_}, b={b_}")
             node_size=[]
             true_size = 0
             true_struct = 0 
             trials = 500
+            n = 10000
             for k in range(trials):
                 print(f"{k+1}/{trials}", end="\r")
-                X,y = generate_neufeldt_data(a_,b_, n=200)
-                tree = build_ccp_model(X,y)
-                size = tree.tree_.node_count 
-                leaves = (size + 1)/2
+                X,y = generate_neufeldt_data(a_,b_, n=n)
+                #tree = build_ccp_model(X,y)
+                tree = build_our_model(X,y)
+
+                leaves = sum(get_leaf_nodes(tree))
                 node_size.append(leaves)
 
                 # Check if size and or struct is same
@@ -80,16 +69,24 @@ if __name__ == '__main__':
                             if feature[l] == 2 and feature[r]==2:
                                     true_struct +=1
                         
-
             p_size = true_size/trials
             p_struct = true_struct/trials
 
-            break
-        break
+            results[(a_,b_)] = {
+                "trials": trials,
+                "same_size": true_size,
+                "same_split": true_struct,
+                "node_size": node_size
+            }
 
-    print(f"Fraction of correct size: {p_size:2f}")
-    print(f"Fraction of true struct: {p_struct:2f}")
-    plt.hist(node_size)
-    plt.show()
-    print("Done")
+
+    with open(f"./results/ourtree_{n}_resuslts.txt", "w") as file:
+        print(results, file=file)
+
+    print(results)
+    #print(f"Fraction of correct size: {p_size:2f}")
+    #print(f"Fraction of true struct: {p_struct:2f}")
+    #plt.hist(node_size)
+    #plt.show()
+    #print("Done")
 
