@@ -25,7 +25,7 @@ delta = .05
 X, Y, feature_names = utils.load_cal_housing()
 d = len(feature_names)
 
-mid = int(np.floor(len(Y)*4/8))
+mid = int(np.floor(len(Y)*7/8))
 
 print(len(Y))
 X_train, Y_train = X[mid:], Y[mid:]
@@ -38,7 +38,7 @@ print('samplesize for mu: ', len(X_train))
 
 #### CART tree ####
 
-K = 10
+K = 5
 min_dp_leaf = 10
 
 cart = DecisionTreeRegressor(max_depth=K, min_samples_leaf = min_dp_leaf, random_state=0, ccp_alpha = 0).fit(X_train, Y_train)
@@ -119,8 +119,8 @@ plt.plot(mses, color = 'red')
 #plt.plot(is_subtree)
 
 #plt.axvline(x = min_subtree_index_30, color = 'lightgreen', label = 'delta = 0.3')
-plt.axvline(x = max_subtree_cum_pvals001, color = 'green', label = 'delta = 0.001')
-#plt.axvline(x = max_subtree_cum_pvals05, color = 'green', label = 'delta = 0.05')
+#plt.axvline(x = max_subtree_cum_pvals001, color = 'green', label = 'delta = 0.001')
+plt.axvline(x = max_subtree_cum_pvals05, color = 'green', label = 'delta = 0.05')
 plt.axhline(y = MSEP_T_star, linestyle='--', color = 'orange')
 plt.axhline(y = msep_T_star_c, linestyle='--', color = 'orange')
 #plt.legend()
@@ -129,15 +129,16 @@ plt.axhline(y = msep_T_star_c, linestyle='--', color = 'orange')
 
 
 plt.show()
+	
 '''
-
 ##### Simulation study ####
 
 print('### Simulation study ###')
+K2 = 7
 
 # Regression function
 
-mu = DecisionTreeRegressor(max_depth=K, min_samples_leaf = min_dp_leaf, random_state=0, ccp_alpha = 0.0011744717353133899).fit(X_train, Y_train)
+mu = DecisionTreeRegressor(max_depth=K, min_samples_leaf = min_dp_leaf, random_state=0, ccp_alpha = 0.003924051955631204).fit(X_train, Y_train)
 
 true_n_leaves = mu.get_n_leaves()
 print('true number leaves', true_n_leaves)
@@ -155,7 +156,7 @@ print('R^2: ', mu.score(X_test, Y_test))
 #sigma_hat 0.3714630006472163
 #R^2:  0.6142775472081174
 
-sigma_sq = 0.37**2
+sigma_sq = 0.46**2
 
 np.random.seed(1)
 
@@ -163,33 +164,44 @@ np.random.seed(1)
 M = 500
 
 # sample size per simulation
-N = len(Y_train)
+Ns = [l*len(Y_train) for l in range(1,100) if l % 5 == 0]
+precision_rates = []
 
-# Responses
+for N in Ns:
+	print('Iteration', N)
+	precision_rate = 0
 
-#print('R^2: ', cart1.score(X_test, Y_test))
+	n_leaves = []
+	mseps = []
 
-n_leaves = []
-mseps = []
+	for m in range(M):
+		X_m = X.sample(n=N, replace = True)
+		mus_m = mu.predict(X_m)
+		Y_m = np.random.normal(mus_m, sigma_sq, N)
+		T = DecisionTreeRegressor(max_depth=K2, min_samples_leaf = 10).fit(X_m, Y_m)
+		n_optimal = len(utils.get_optimal_leaves(T, delta, d))
+		n_leaves.append(n_optimal)
+		utils.prune_to_T_star(T, delta, d)
+		pred_test = T.predict(X_test)
+		mseps.append(utils.get_MSE(Y_test, pred_test))
+		if (n_optimal == true_n_leaves):
+			precision_rate += 1
+	precision_rate = precision_rate/M
+	precision_rates.append(precision_rate)
 
-for m in range(M):
-	X_m = X_train.sample(n=N, replace = True)
-	mus_m = mu.predict(X_m)
-	Y_m = np.random.normal(mus_m, sigma_sq, N)
-	T = DecisionTreeRegressor(max_depth=K, min_samples_leaf = 10).fit(X_m, Y_m)
-	n_optimal = len(utils.get_optimal_leaves(T, delta, d))
-	n_leaves.append(n_optimal)
-	utils.prune_to_T_star(T, delta, d)
-	pred_test = T.predict(X_test)
-	mseps.append(utils.get_MSE(Y_test, pred_test))
 
 
 
 
+plt.plot(Ns, precision_rates)
+
+plt.show()
 
 #print(len(Y))
 
 
+
+'''
 plt.hist(n_leaves, bins = 100)
 plt.axvline(x = true_n_leaves, color = 'green')
 #plt.legend()
@@ -198,8 +210,8 @@ plt.axvline(x = true_n_leaves, color = 'green')
 #tree.plot_tree(mu, fontsize = 7, impurity = False, label = 'none', feature_names = feature_names)
 
 plt.show()
-
-
+'''
+'''
 plt.hist(mseps, bins = 100)
 plt.axvline(x = msep_sr, color = 'purple')
 #plt.legend()
@@ -208,7 +220,7 @@ plt.axvline(x = msep_sr, color = 'purple')
 #tree.plot_tree(mu, fontsize = 7, impurity = False, label = 'none', feature_names = feature_names)
 
 plt.show()
-
+'''
 '''
 plt.plot(cum_pvals[:22])
 plt.axhline(y = 0.05, color = 'purple')

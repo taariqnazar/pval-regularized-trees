@@ -16,7 +16,7 @@ np.random.seed(20)
 
 #### Hyperparameters ####
 
-N = 10000
+N = 1000
 delta = .05
 
 
@@ -43,14 +43,14 @@ Y = np.random.normal(mus, sigma_sq, N)
 
 #### CART tree ####
 
-K = 10
+K = 4
 min_dp_leaf = 10
 cart = DecisionTreeRegressor(max_depth=K, min_samples_leaf = min_dp_leaf).fit(X, Y)
 
 
 #### Validation #####
 
-X_test = np.random.normal(0, sigma_sq, size = (N, d))
+X_test = np.random.normal(0, 1, size = (N, d))
 mus_test = [mu(x) for x in X_test]
 Y_test = np.random.normal(mus_test, sigma_sq, N)
 #print('Score: ', cart.score(X_test, Y_test))
@@ -59,36 +59,37 @@ pred_test = cart.predict(X_test)
 
 msep = utils.get_MSE(Y_test, pred_test)
 
-print(msep)
+#print(msep)
+
+YD_statistics = utils.get_YD_statistics(cart)
+print('YD:', YD_statistics)
+
+p_values = utils.get_p_values(cart, d)
+print('p_values', p_values)
 
 
-
-#p_values = utils.get_p_values(cart, d)
-#print(p_values)
-
-
-optimal_leaves = utils.get_optimal_leaves(cart, delta, d)
+#optimal_leaves = utils.get_optimal_leaves(cart, delta, d)
 
 #print(optimal_leaves)
 
 
+tree.plot_tree(cart, fontsize = 7, impurity = False, label = 'none')
+
+#utils.prune(optimal_leaves, cart)
 #tree.plot_tree(cart, fontsize = 7, impurity = False, label = 'none')
 
-utils.prune(optimal_leaves, cart)
-#tree.plot_tree(cart, fontsize = 7, impurity = False, label = 'none')
+#pred_test = cart.predict(X_test)
 
-pred_test = cart.predict(X_test)
+#msep = utils.get_MSE(Y_test, pred_test)
 
-msep = utils.get_MSE(Y_test, pred_test)
-
-print(msep)
+#print(msep)
 
 ###### Simulation #########
-
+'''
 M = 500
 precision_rates = []
 
-Ns = np.arange(100, 10000, 100)
+Ns = [1000]
 
 for N in Ns:
 
@@ -117,7 +118,7 @@ for N in Ns:
 
 
 
-
+'''
 
 #print(mseps)
 
@@ -128,7 +129,7 @@ for N in Ns:
 
 #### Plots ####
 
-plt.plot(Ns, precision_rates)
+#plt.plot(Ns, precision_rates)
 
 #plt.hist(mseps, bins = 100)
 
@@ -139,7 +140,7 @@ plt.plot(Ns, precision_rates)
 
 # Plot tree
 
-#tree.plot_tree(cart, fontsize = 7, impurity = False, label = 'none')
+tree.plot_tree(cart, fontsize = 7, impurity = False, label = 'none')
 #features_names = ['X1', 'X2', 'X3', 'X4','X5', 'X6','X7', 'X8', 'X9', 'X10']
 
 

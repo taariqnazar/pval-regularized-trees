@@ -266,6 +266,8 @@ for m in range(M):
 
 #print(len(Y))
 
+print('Theoretical Mean:', 21*(1-delta)/(1 - 2*delta))
+print('Mean:', np.mean(n_leaves))
 
 plt.hist(n_leaves, bins = 100)
 plt.axvline(x = true_n_leaves, color = 'green')
