@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+src/__init__.py
+src/boosting.py
+src/changepoint_stopping.py
+src/chi_sq_dist.py
+src/chi_sq_distr_func.py
+src/data.py
+src/statistics.py
+src/tree.py
+src/covariance_penalties.egg-info/PKG-INFO
+src/covariance_penalties.egg-info/SOURCES.txt
+src/covariance_penalties.egg-info/dependency_links.txt
+src/covariance_penalties.egg-info/requires.txt
+src/covariance_penalties.egg-info/top_level.txt

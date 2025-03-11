@@ -1,0 +1,20 @@
+[project]
+name = "covariance-penalties"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "scikit-learn",
+    "matplotlib",
+    "seaborn",
+    "jupyterlab>=4.3.3",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8.2",
+]

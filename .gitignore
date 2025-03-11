@@ -1,18 +1,7 @@
-# Ignore everythin
-*
-# Except 
-!.gitignore
-!.github/**
-!code/*
-!code/simstudy/*
-!*/
-!notes.tex
-!old_notes.tex
-!test.tex
-!main.tex
-!Figures/*
-!README.md
-!corrected_null.pdf
-!selected_inference_II.pdf
+.DS_STORE
+.ipynb_checkpoints/
+__pycache__/
+uv.lock
+
 
 
