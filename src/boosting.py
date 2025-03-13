@@ -38,16 +38,13 @@ class CCPBoostingTree(BoostingTree):
     def __init__(self, trees=[]):
         super().__init__(trees)
 
-    def fit(self, X, y, significanced_level, max_estimators=1000, **kwargs):
+    def fit(self, X, y, significance_level, max_estimators=1000, **kwargs):
         if self.trees:
             raise ValueError("Model already contains trees")
 
         working_y = y.copy()
         for i in range(max_estimators):
-            tree = ccp_pval_regularised_tree(X, working_y, significanced_level, **kwargs)
-            p_value = get_tree_split_pvalue(tree)
-            if p_value > significanced_level:
-                break
+            tree = ccp_pval_regularised_tree(X, working_y, significance_level, **kwargs)
             self.add_tree(tree)
             if tree.tree_.n_leaves == 1:
                 break

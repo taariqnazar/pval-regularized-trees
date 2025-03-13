@@ -3,5 +3,7 @@
 __pycache__/
 uv.lock
 
+.data/
+figures/
 
 
