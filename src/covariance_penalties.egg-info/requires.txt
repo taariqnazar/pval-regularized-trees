@@ -5,3 +5,5 @@ scikit-learn
 matplotlib
 seaborn
 jupyterlab>=4.3.3
+dtreeviz>=2.2.2
+graphviz>=0.20.3

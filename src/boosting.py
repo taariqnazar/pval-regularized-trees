@@ -23,16 +23,16 @@ class BoostingTree:
 
         return prediction
 
-    def fit(self, X, y, n_estimators=1000, **kwargs):
-        if self.trees:
-            raise ValueError("Model already contains trees")
+    #def fit(self, X, y, n_estimators=1000, **kwargs):
+    #    #if self.trees:
+    #    #    raise ValueError("Model already contains trees")
 
-        working_y = y.copy()
-        for i in range(n_estimators):
-            self.add_tree(train_regression_tree(X, working_y, **kwargs))
-            working_y -= self.trees[-1].predict(X)
+    #    working_y = y.copy()
+    #    for i in range(n_estimators):
+    #        self.add_tree(train_regression_tree(X, working_y, **kwargs))
+    #        working_y -= self.trees[-1].predict(X)
 
-        return self
+    #    return self
 
 class CCPBoostingTree(BoostingTree):
     def __init__(self, trees=[]):
@@ -40,7 +40,9 @@ class CCPBoostingTree(BoostingTree):
 
     def fit(self, X, y, significance_level, max_estimators=1000, **kwargs):
         if self.trees:
-            raise ValueError("Model already contains trees")
+            self.trees = []
+            print("Model already contains trees")
+            print("Cleaning prev model")
 
         working_y = y.copy()
         for i in range(max_estimators):

@@ -1,0 +1,29 @@
+random_seed: 42
+
+models:
+  pboosting_inf:
+    learning_rate: 0.1
+    significance_level: 1000000000.0 
+    min_samples_leaf: 20 
+    max_depth: 3
+  pboosting_10:
+    learning_rate: 0.1
+    significance_level: 0.1
+    min_samples_leaf: 20 
+    max_depth: 3
+  pboosting_05:
+    learning_rate: 0.1
+    significance_level: 0.05
+    min_samples_leaf: 20 
+    max_depth: 3
+  pboosting_01:
+    learning_rate: 0.1
+    significance_level: 0.01
+    min_samples_leaf: 20 
+    max_depth: 3
+  gbm:
+    learning_rate: 0.1
+    k_folds: 5
+    min_samples_leaf: 20 
+    max_depth: 3
+
