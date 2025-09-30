@@ -11,22 +11,21 @@ class GBM:
     """
     Gradient Boosting wrapper with optional CV-based early stopping.
 
-    If k_folds >= 2, the number of boosting stages (n_estimators) is chosen
-    by cross-validation:
-      - Train a GradientBoostingRegressor with max_estimators.
+    If k_folds >= 2, the number of boosting stages used is chosen by cross-validation:
+      - Train a GradientBoostingRegressor up to `max_estimators`.
       - Track validation error using staged predictions.
-      - Pick the number of iterations that minimizes MSE on each fold.
-      - Use the mean (rounded) across folds as the final n_estimators.
+      - Pick the number of stages that minimizes MSE on each fold.
+      - Use the mean (rounded) across folds as the final number of stages.
 
-    If k_folds = 1 (default), the model just trains with max_estimators.
+    If k_folds = 1 (default), the model simply trains for `max_estimators` stages.
 
     Parameters (constructor)
     ------------------------
     k_folds : int, default=1
-        Number of cross-validation folds to select n_estimators.
-        If 1, disables CV and uses max_estimators directly.
+        Number of cross-validation folds to select the number of stages.
+        If 1, disables CV and uses `max_estimators` directly.
     max_estimators : int, default=500
-        Maximum number of boosting stages to train.
+        Upper bound on the number of boosting stages to train.
     **parameters : Any
         Additional keyword arguments passed directly to
         sklearn.ensemble.GradientBoostingRegressor
@@ -37,7 +36,7 @@ class GBM:
     model : GradientBoostingRegressor
         The fitted sklearn GradientBoostingRegressor.
     n_estimators_ : int
-        Number of estimators actually chosen (via CV or max_estimators).
+        The number of stages actually chosen (via CV or equal to `max_estimators` when k_folds=1).
     """
 
     def __init__(
@@ -54,28 +53,27 @@ class GBM:
         self.parameters = dict(parameters)
 
         self.model: Optional[GradientBoostingRegressor] = None
-        self.n_estimators_: Optional[int] = None  # learned number after fit
+        self.n_estimators_: Optional[int] = None  # chosen number of stages after fit
 
     def _best_iters_cv(
         self, X: np.ndarray, y: np.ndarray, random_state: int
     ) -> Sequence[int]:
         """
-        Perform k-fold CV to find best number of boosting stages.
+        Perform k-fold CV to find the best number of boosting stages (1-based).
 
         Returns
         -------
         best_iters : list of int
-            The optimal n_estimators (1-based) found on each fold.
+            The optimal number of stages found on each fold (1..max_estimators).
         """
-        kf = KFold(n_splits=self.k_folds, shuffle=True,
-                   random_state=random_state)
+        kf = KFold(n_splits=self.k_folds, shuffle=True, random_state=random_state)
         best_iters = []
         for tr_idx, te_idx in kf.split(X):
             X_tr, X_te = X[tr_idx], X[te_idx]
             y_tr, y_te = y[tr_idx], y[te_idx]
 
             model = GradientBoostingRegressor(
-                n_estimators=self.max_estimators,
+                n_estimators=self.max_estimators,  # sklearn's arg
                 random_state=random_state,
                 **self.parameters,
             )
@@ -93,7 +91,7 @@ class GBM:
 
     def fit(self, X, y, random_state: int = 0):
         """
-        Fit the Gradient Boosting model, optionally with CV-based n_estimators.
+        Fit the Gradient Boosting model, optionally selecting the number of stages by CV.
 
         Inputs
         ------
@@ -121,7 +119,7 @@ class GBM:
 
         self.n_estimators_ = n_best
         self.model = GradientBoostingRegressor(
-            n_estimators=n_best,
+            n_estimators=n_best,  # sklearn's arg
             random_state=random_state,
             **self.parameters,
         )
@@ -129,9 +127,7 @@ class GBM:
         return self
 
     def predict(self, X):
-        """
-        Predict regression targets for new samples.
-        """
+        """Predict regression targets for new samples."""
         if self.model is None:
             raise RuntimeError("GBM is not fitted. Call .fit() first.")
         return self.model.predict(X)
@@ -148,7 +144,8 @@ class GBM:
         """
         Return number of leaves per weak learner.
 
-        For single-output GBR, estimators_ has shape (n_estimators, 1).
+        For single-output GBR, estimators_ has shape (n_estimators_, 1).
+
         Returns
         -------
         list of int
@@ -179,8 +176,7 @@ class GBM:
 
     def __repr__(self) -> str:
         inner = ", ".join(
-            [f"k_folds={self.k_folds}",
-                f"max_estimators={self.max_estimators}"]
+            [f"k_folds={self.k_folds}", f"max_estimators={self.max_estimators}"]
             + [f"{k}={v!r}" for k, v in self.parameters.items()]
         )
         return f"GBM({inner})"

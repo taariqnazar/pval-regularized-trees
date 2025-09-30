@@ -1,29 +1,31 @@
+# experiments/boosting_gri.yml
 random_seed: 42
 
-models:
-  pboosting_inf:
-    learning_rate: 0.1
-    significance_level: 1000000000.0 
-    min_samples_leaf: 20 
-    max_depth: 3
-  pboosting_10:
-    learning_rate: 0.1
-    significance_level: 0.1
-    min_samples_leaf: 20 
-    max_depth: 3
-  pboosting_05:
-    learning_rate: 0.1
-    significance_level: 0.05
-    min_samples_leaf: 20 
-    max_depth: 3
-  pboosting_01:
-    learning_rate: 0.1
-    significance_level: 0.01
-    min_samples_leaf: 20 
-    max_depth: 3
-  gbm:
-    learning_rate: 0.1
-    k_folds: 5
-    min_samples_leaf: 20 
-    max_depth: 3
+dataset:
+  name: california             # or bemtpl16, linear, neufeldt, ...
+  params:
+    data_home: "data/raw"
 
+models:
+  CCPPTreeBoosting:
+    grid:
+      learning_rate: [0.05, 0.1]
+      significance_level: [1e-2, 5e-2, 1e-1]
+      max_depth: [3, 4]
+      min_samples_leaf: [10, 20]
+      max_estimators: [200]
+  RecursivePTreeBoosting:
+    grid:
+      learning_rate: [0.05, 0.1]
+      threshold: [1e-2, 5e-2, 1e-1]
+      prune_if: [">="]             # usually fixed
+      max_depth: [3, 4]
+      min_samples_leaf: [10, 20]
+      max_estimators: [200]
+  GBM:
+    grid:
+      learning_rate: [0.05, 0.1]
+      max_depth: [3, 4]
+      min_samples_leaf: [10, 20]
+      k_folds: [1]                 # you said no CV earlier; keep 1
+      max_estimators: [200]          # map to max_estimators if you prefer

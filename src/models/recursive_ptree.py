@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor, _tree
 
-from utils.stats_recursive import get_p_values
+from utils.stats.pvalues import get_p_values
 from utils.prune import cond_scalar
 
 

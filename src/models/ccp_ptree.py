@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any, List, Tuple
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor
 
-from utils import get_cum_p_val
+from utils.stats.pvalues import get_cum_p_val
 
 
 class CCPPTree:

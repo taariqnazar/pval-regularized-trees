@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split
 
-from examples.boosting_utils import (
+from examples.boosting.boosting_utils import (
     _evaluate_models,
     _evaluate_staged_models,
     _load_config,
