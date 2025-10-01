@@ -45,31 +45,38 @@ def _build_models(models_cfg: Dict[str, Any]) -> Dict[str, Any]:
     return built
 
 
-def _evaluate(model, Xtr, ytr, Xte, yte) -> Dict[str, Any]:
+def _evaluate(model, Xtr, ytr, Xte, yte):
     y_tr = model.predict(Xtr)
     y_te = model.predict(Xte)
-    out: Dict[str, Any] = {
-        "rmse_train": rmse(ytr, y_tr),
-        "rmse_test": rmse(yte, y_te),
-        "n_estimators_": getattr(model, "n_estimators_", None),
+
+    out = {
+        "rmse_train": float(np.sqrt(rmse(ytr, y_tr))),
+        "rmse_test": float(np.sqrt(rmse(yte, y_te))),
+        "n_estimators_": int(getattr(model, "n_estimators_", 0))
+        if getattr(model, "n_estimators_", None) is not None
+        else None,
     }
+
     if hasattr(model, "get_staged_complexity"):
         try:
-            out["staged_complexity"] = getattr(
-                model, "get_staged_complexity")()
+            sc = model.get_staged_complexity()
+            out["staged_complexity"] = [
+                int(v) for v in sc] if sc is not None else None
         except Exception:
             out["staged_complexity"] = None
+
     if hasattr(model, "staged_predict"):
-        staged: List[float] = []
+        staged = []
         for yp in model.staged_predict(Xte):
-            staged.append(rmse(yte, yp))
+            staged.append(float(np.sqrt(mean_squared_error(yte, yp))))
         out["staged_rmse"] = staged
     else:
         out["staged_rmse"] = None
+
     return out
 
 
-def run(cfg_path: str, outdir: str | Path = "numerical_illustrations/outputs"):
+def run(cfg_path: str, outdir: str | Path = "src/numerical_illustrations/outputs"):
     cfg = _load_cfg(cfg_path)
     seed = int(cfg.get("random_seed", 0))
 
@@ -100,4 +107,4 @@ def run(cfg_path: str, outdir: str | Path = "numerical_illustrations/outputs"):
 
 
 if __name__ == "__main__":
-    run("numerical_illustrations/boosting/config.yaml")
+    run("src/numerical_illustrations/boosting/config.yaml")

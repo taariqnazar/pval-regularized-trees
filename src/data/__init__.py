@@ -10,9 +10,9 @@ Available datasets can be listed with `available_datasets()`.
 from .core import load_dataset, available_datasets, register_dataset
 
 # Import modules so their @register_dataset functions run
-from . import california  # noqa: F401
-from . import bemtpl16  # noqa: F401
-from . import synthetic  # noqa: F401
+from .california_housing import load_california
+from .bemtpl16 import load_bemtpl16
+from .synthetic import generate_linear_data, generate_neufeldt_data
 
 __all__ = [
     "load_dataset",

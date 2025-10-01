@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional, Dict, Any, List
 import numpy as np
 
-from models.ccpp_tree import CCPPTree
+from models.ccp_ptree import CCPPTree
 
 
 class CCPPTreeBoosting:

@@ -8,7 +8,7 @@ from .core import register_dataset
 
 @register_dataset("bemtpl16")
 def load_bemtpl16(
-    *, csv_path: str = "data/raw/BEMTPL16.csv"
+    *, csv_path: str = "src/data/raw/BEMTPL16.csv"
 ) -> Tuple[np.ndarray, np.ndarray]:
     df = pd.read_csv(csv_path)
     y = df["number_of_liability_claims"].to_numpy(dtype=np.float64)

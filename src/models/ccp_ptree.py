@@ -41,8 +41,8 @@ class CCPPTree:
     """
 
     def __init__(self, *, significance_level: float = 0.05, **tree_params: Any):
-        if not (0 < significance_level < 1):
-            raise ValueError("significance_level must be in (0, 1).")
+        if not (0 < significance_level):
+            raise ValueError("significance_level must be in (0, +inf).")
         self.significance_level = float(significance_level)
 
         # Params forwarded to sklearn's DecisionTreeRegressor

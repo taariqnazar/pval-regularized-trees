@@ -2,13 +2,13 @@ random_seed: 42
 
 # We'll run all variants on each of these datasets
 datasets:
-  - california
   - bemtpl16
+  - california_housing
 
 models:
   GBM:
     variants:
-      gbm_d3_l20:
+      gbm:
         learning_rate: 0.1
         max_depth: 3
         min_samples_leaf: 20

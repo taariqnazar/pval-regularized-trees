@@ -27,7 +27,7 @@ def load_dataset(name: str, /, **kwargs: Any) -> Tuple[np.ndarray, np.ndarray]:
     """
     Unified entry point: returns (X, y) as NumPy arrays.
     Example:
-        X, y = load_dataset("california", data_home="data/raw")
+        X, y = load_dataset("california_housing", data_home="data/raw")
         X, y = load_dataset("bemtpl16", csv_path="data/raw/BEMTPL16.csv")
     """
     if name not in _DATASETS:

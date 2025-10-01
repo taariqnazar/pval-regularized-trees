@@ -1,0 +1,25 @@
+Metadata-Version: 2.4
+Name: covariance-penalties
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: scipy
+Requires-Dist: scikit-learn
+Requires-Dist: matplotlib
+Requires-Dist: seaborn
+Requires-Dist: jupyterlab>=4.3.3
+Requires-Dist: dtreeviz>=2.2.2
+Requires-Dist: graphviz>=0.20.3
+
+# README
+
+[Download latest notes](https://github.com/taariqnazar/covariance_penalties/releases/latest/download/test.pdf)
+
+## TODO:
+
+### Research
+
+- ?
