@@ -90,8 +90,8 @@ class RecursivePTree:
         self._prune_topdown_inplace(est, pvals, self.threshold, self.prune_if)
 
         self.model = est
-        self.pvals_ = pvals
-        self.n_leaves_ = int(est.tree_.n_leaves)
+        self.updated_pvals_ = get_p_values(est, d=self.d)
+        self.n_leaves_ = count_leaves(est)
         return self
 
     def predict(self, X):
@@ -185,3 +185,18 @@ class RecursivePTree:
             + [f"{k}={v!r}" for k, v in self.tree_params.items()]
         )
         return f"RecursivePTree({inner})"
+
+
+def count_leaves(est):
+    """Count leaves in a (possibly pruned) DecisionTreeRegressor."""
+    T = est.tree_
+    n_leaves = 0
+    stack = [0]
+    while stack:
+        nid = stack.pop()
+        L, R = T.children_left[nid], T.children_right[nid]
+        if L == _tree.TREE_LEAF:
+            n_leaves += 1
+        else:
+            stack.extend([L, R])
+    return n_leaves

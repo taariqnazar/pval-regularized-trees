@@ -13,7 +13,7 @@ models:
         max_depth: 3
         min_samples_leaf: 20
         k_folds: 5           # set to 1 to disable CV
-        max_estimators: 200
+        max_estimators: 2500
 
   CCPPTreeBoosting:
     variants:
@@ -22,25 +22,25 @@ models:
         significance_level: 1000000000.0
         min_samples_leaf: 20
         max_depth: 3
-        max_estimators: 200
+        max_estimators: 2500
       pboosting_10:
         learning_rate: 0.1
         significance_level: 0.1
         min_samples_leaf: 20
         max_depth: 3
-        max_estimators: 200
+        max_estimators: 2500
       pboosting_05:
         learning_rate: 0.1
         significance_level: 0.05
         min_samples_leaf: 20
         max_depth: 3
-        max_estimators: 200
+        max_estimators: 2500
       pboosting_01:
         learning_rate: 0.1
         significance_level: 0.01
         min_samples_leaf: 20
         max_depth: 3
-        max_estimators: 200
+        max_estimators: 2500
 
   RecursivePTreeBoosting:
     variants:
@@ -50,18 +50,18 @@ models:
         prune_if: ">="
         min_samples_leaf: 20
         max_depth: 3
-        max_estimators: 200
+        max_estimators: 2500
       rboost_05:
         learning_rate: 0.1
         threshold: 0.05
         prune_if: ">="
         min_samples_leaf: 20
         max_depth: 3
-        max_estimators: 200
+        max_estimators: 2500
       rboost_01:
         learning_rate: 0.1
         threshold: 0.01
         prune_if: ">="
         min_samples_leaf: 20
         max_depth: 3
-        max_estimators: 200
+        max_estimators: 2500

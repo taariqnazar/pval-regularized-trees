@@ -15,6 +15,10 @@ for ds_name, ds_results in results["datasets"].items():
                 "rmse_train": metrics.get("rmse_train"),
                 "rmse_test": metrics.get("rmse_test"),
                 "n_estimators": metrics.get("n_estimators_"),
+                # new fields
+                "best_iter": metrics.get("best_iter"),
+                "best_rmse": metrics.get("best_rmse"),
+                "best_complexity": metrics.get("best_complexity"),
             }
         )
 
@@ -23,5 +27,16 @@ df = pd.DataFrame(rows)
 # Print one table per dataset
 for ds in df["dataset"].unique():
     print(f"\n=== Results for {ds} ===")
-    print(df[df["dataset"] == ds]
-          [["model", "rmse_train", "rmse_test", "n_estimators"]])
+    print(
+        df[df["dataset"] == ds][
+            [
+                "model",
+                "rmse_train",
+                "rmse_test",
+                "n_estimators",
+                "best_iter",
+                "best_rmse",
+                # "best_complexity",
+            ]
+        ]
+    )

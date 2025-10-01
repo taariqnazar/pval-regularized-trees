@@ -84,13 +84,15 @@ for d in ds:
 fig, axes = plt.subplots(2, 2, figsize=(10, 8))
 plt.subplots_adjust(hspace=0.3, wspace=0.3)
 
-for i, rho in enumerate(rhos):  
-    for j, N in enumerate(Ns):  
+for i, rho in enumerate(rhos):
+    for j, N in enumerate(Ns):
         d = 10  # figure uses d=10 fixed
-        emp_q, approx_q, (Z, F_emp, x, F_approx) = simulate_empirical_quantile(N, d, rho)
+        emp_q, approx_q, (Z, F_emp, x, F_approx) = simulate_empirical_quantile(
+            N, d, rho
+        )
 
         ax = axes[i, j]
-        ax.plot(Z, F_emp, label="Empirical CDF", color="blue")   # <-- fixed
+        ax.plot(Z, F_emp, label="Empirical CDF", color="blue")  # <-- fixed
         ax.plot(x, F_approx, label="Approximation", color="orange")
         ax.axhline(y=0.95, linestyle="--", color="blue")
 

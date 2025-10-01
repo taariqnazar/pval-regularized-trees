@@ -7,19 +7,20 @@ from utils.stats.pvalues import Psi, get_p_values  # your custom functions
 # -----------------------
 # Parameters
 # -----------------------
-M = 1000            # Monte Carlo repetitions
-d = 10              # feature dimension
-rho = 0.8           # correlation for dependent covariates
-sigma = 1.0         # noise standard deviation
-delta = 0.05        # significance level
-r = 0.2             # decay rate for kappa = N^(-r)
-min_leaves = 1      # minimal leaf size for CART
-x_axis_bound = 6000 # maximum sample size
-step = 100          # step size for sample sizes
+M = 1000  # Monte Carlo repetitions
+d = 10  # feature dimension
+rho = 0.8  # correlation for dependent covariates
+sigma = 1.0  # noise standard deviation
+delta = 0.05  # significance level
+r = 0.2  # decay rate for kappa = N^(-r)
+min_leaves = 1  # minimal leaf size for CART
+x_axis_bound = 6000  # maximum sample size
+step = 100  # step size for sample sizes
 
 # Covariance for dependent covariates
 muX = np.zeros(d)
 covX = rho * np.ones((d, d)) + (1 - rho) * np.eye(d)
+
 
 # -----------------------
 # Helper: approximate quantile from Psi
@@ -56,7 +57,8 @@ for N in x_axis:
         mus = [0 if x[0] <= 0 else kappa for x in X]
         Y = np.random.normal(mus, sigma, size=N)
 
-        cart = DecisionTreeRegressor(max_depth=1, min_samples_leaf=min_leaves).fit(X, Y)
+        cart = DecisionTreeRegressor(
+            max_depth=1, min_samples_leaf=min_leaves).fit(X, Y)
         p_vals.append(get_p_values(cart, d)[0])
 
     frac_correct_indep.append(np.mean([p <= delta for p in p_vals]))
@@ -76,7 +78,8 @@ for N in x_axis:
         mus = [0 if x[0] <= 0 else kappa for x in X]
         Y = np.random.normal(mus, sigma, size=N)
 
-        cart = DecisionTreeRegressor(max_depth=1, min_samples_leaf=min_leaves).fit(X, Y)
+        cart = DecisionTreeRegressor(
+            max_depth=1, min_samples_leaf=min_leaves).fit(X, Y)
         p_vals.append(get_p_values(cart, d)[0])
 
     frac_correct_dep.append(np.mean([p <= delta for p in p_vals]))

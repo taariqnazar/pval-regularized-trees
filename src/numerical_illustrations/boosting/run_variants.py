@@ -50,28 +50,50 @@ def _evaluate(model, Xtr, ytr, Xte, yte):
     y_te = model.predict(Xte)
 
     out = {
-        "rmse_train": float(np.sqrt(rmse(ytr, y_tr))),
-        "rmse_test": float(np.sqrt(rmse(yte, y_te))),
+        "rmse_train": float(np.sqrt(mean_squared_error(ytr, y_tr))),
+        "rmse_test": float(np.sqrt(mean_squared_error(yte, y_te))),
         "n_estimators_": int(getattr(model, "n_estimators_", 0))
         if getattr(model, "n_estimators_", None) is not None
         else None,
     }
 
+    staged_rmse = None
+    staged_complexity = None
+    best_iter = None
+    best_rmse = None
+    best_complexity = None
+
     if hasattr(model, "get_staged_complexity"):
         try:
-            sc = model.get_staged_complexity()
-            out["staged_complexity"] = [
-                int(v) for v in sc] if sc is not None else None
+            staged_complexity = model.get_staged_complexity()
+            staged_complexity = (
+                [int(v) for v in staged_complexity]
+                if staged_complexity is not None
+                else None
+            )
         except Exception:
-            out["staged_complexity"] = None
+            staged_complexity = None
 
     if hasattr(model, "staged_predict"):
-        staged = []
+        staged_rmse = []
         for yp in model.staged_predict(Xte):
-            staged.append(float(np.sqrt(mean_squared_error(yte, yp))))
-        out["staged_rmse"] = staged
-    else:
-        out["staged_rmse"] = None
+            staged_rmse.append(rmse(yte, yp))
+
+        if staged_rmse:
+            best_iter = int(np.argmin(staged_rmse))
+            best_rmse = float(staged_rmse[best_iter])
+            if staged_complexity is not None and best_iter < len(staged_complexity):
+                best_complexity = int(staged_complexity[best_iter])
+
+    out.update(
+        {
+            "staged_rmse": staged_rmse,
+            "staged_complexity": staged_complexity,
+            "best_iter": best_iter + 1,
+            "best_rmse": best_rmse,
+            "best_complexity": best_complexity,
+        }
+    )
 
     return out
 

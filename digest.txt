@@ -1,0 +1,2116 @@
+Directory structure:
+└── code/
+    ├── pyproject.toml
+    └── src/
+        ├── data/
+        │   ├── __init__.py
+        │   ├── bemtpl16.py
+        │   ├── california_housing.py
+        │   ├── core.py
+        │   └── synthetic.py
+        ├── models/
+        │   ├── __init__.py
+        │   ├── ccp_ptree.py
+        │   ├── ccp_ptree_boosting.py
+        │   ├── gbm.py
+        │   ├── recursive_ptree.py
+        │   └── recursive_ptree_boosting.py
+        ├── numerical_illustrations/
+        │   ├── figure1_table1.py
+        │   ├── figure2.py
+        │   ├── figure4_figure5.py
+        │   └── boosting/
+        │       ├── generate_results_table.py
+        │       └── run_variants.py
+        └── utils/
+            ├── __init__.py
+            ├── metrics.py
+            ├── protocols.py
+            ├── prune.py
+            └── stats/
+                ├── __init__.py
+                └── pvalues.py
+
+================================================
+FILE: pyproject.toml
+================================================
+[project]
+name = "covariance-penalties"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "scikit-learn",
+    "matplotlib",
+    "seaborn",
+    "jupyterlab>=4.3.3",
+    "dtreeviz>=2.2.2",
+    "graphviz>=0.20.3",
+]
+
+[dependency-groups]
+dev = [
+    "gitingest>=0.3.1",
+    "ruff>=0.8.2",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+
+================================================
+FILE: src/data/__init__.py
+================================================
+"""
+Dataset loaders and generators.
+
+This module provides a unified interface to load real and synthetic datasets
+through `load_dataset(name, **kwargs)`.
+
+Available datasets can be listed with `available_datasets()`.
+"""
+
+from .core import load_dataset, available_datasets, register_dataset
+
+# Import modules so their @register_dataset functions run
+from .california_housing import load_california
+from .bemtpl16 import load_bemtpl16
+from .synthetic import generate_linear_data, generate_neufeldt_data
+
+__all__ = [
+    "load_dataset",
+    "available_datasets",
+    "register_dataset",
+]
+
+
+
+================================================
+FILE: src/data/bemtpl16.py
+================================================
+# data/bemtpl16.py
+from __future__ import annotations
+from typing import Tuple
+import numpy as np
+import pandas as pd
+from .core import register_dataset
+
+
+@register_dataset("bemtpl16")
+def load_bemtpl16(
+    *, csv_path: str = "src/data/raw/BEMTPL16.csv"
+) -> Tuple[np.ndarray, np.ndarray]:
+    df = pd.read_csv(csv_path)
+    y = df["number_of_liability_claims"].to_numpy(dtype=np.float64)
+    X = df[
+        [
+            "insured_birth_year",
+            "vehicle_age",
+            "policy_holder_age",
+            "driver_license_age",
+            "mileage",
+            "vehicle_power",
+        ]
+    ].to_numpy(dtype=np.float64)
+    return X, y
+
+
+
+================================================
+FILE: src/data/california_housing.py
+================================================
+# data/california.py
+from __future__ import annotations
+from typing import Tuple
+import numpy as np
+from sklearn.datasets import fetch_california_housing
+from .core import register_dataset
+
+
+@register_dataset("california_housing")
+def load_california(
+    *, data_home: str = "data/raw", return_X_y: bool = True
+) -> Tuple[np.ndarray, np.ndarray]:
+    # Delegates to sklearn; always returns (X, y) for our API
+    X, y = fetch_california_housing(data_home=data_home, return_X_y=True)
+    return X, y
+
+
+
+================================================
+FILE: src/data/core.py
+================================================
+from __future__ import annotations
+from typing import Callable, Dict, Tuple, Any, Optional, List
+import numpy as np
+
+DatasetFn = Callable[..., Tuple[np.ndarray, np.ndarray]]
+
+_DATASETS: Dict[str, DatasetFn] = {}
+
+
+def register_dataset(name: str):
+    """Decorator to register a dataset loader under a string name."""
+
+    def _wrap(fn: DatasetFn) -> DatasetFn:
+        if name in _DATASETS:
+            raise ValueError(f"Dataset '{name}' already registered.")
+        _DATASETS[name] = fn
+        return fn
+
+    return _wrap
+
+
+def available_datasets() -> List[str]:
+    return sorted(_DATASETS.keys())
+
+
+def load_dataset(name: str, /, **kwargs: Any) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Unified entry point: returns (X, y) as NumPy arrays.
+    Example:
+        X, y = load_dataset("california_housing", data_home="data/raw")
+        X, y = load_dataset("bemtpl16", csv_path="data/raw/BEMTPL16.csv")
+    """
+    if name not in _DATASETS:
+        raise KeyError(f"Unknown dataset '{name}'. Known: {
+                       available_datasets()}")
+    return _DATASETS[name](**kwargs)
+
+
+
+
+================================================
+FILE: src/data/synthetic.py
+================================================
+"""
+Synthetic dataset generators for experiments.
+"""
+
+from __future__ import annotations
+from typing import Tuple
+
+import numpy as np
+
+from .core import register_dataset
+
+
+@register_dataset("linear_model")
+def generate_linear_data(
+    n: int = 200, p: int = 10, sigma: float = 5.0, random_state: int = 0
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Generate linear regression data with Gaussian noise.
+
+    Parameters
+    ----------
+    n : int, default=200
+        Number of samples.
+    p : int, default=10
+        Number of features.
+    sigma : float, default=5.0
+        Standard deviation of noise.
+    random_state : int, default=0
+        Random seed.
+
+    Returns
+    -------
+    X : ndarray of shape (n, p)
+        Feature matrix.
+    y : ndarray of shape (n,)
+        Target vector.
+    beta : ndarray of shape (p,)
+        True regression coefficients.
+    """
+    rng = np.random.default_rng(random_state)
+    X = rng.normal(0, 1, (n, p))
+    beta = rng.normal(0, 1, p)
+    y = X @ beta + rng.normal(0, sigma, n)
+    return X, y, beta
+
+
+@register_dataset("neufeldt")
+def generate_neufeldt_data(
+    a: float,
+    b: float,
+    n: int = 200,
+    p: int = 10,
+    sigma: float = 5.0,
+    random_state: int = 0,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Generate Neufeldt-style data with interaction/nonlinear effects.
+
+    Parameters
+    ----------
+    a : float
+        Effect size for condition (X[:, 1] > 0).
+    b : float
+        Overall scaling factor.
+    n : int, default=200
+        Number of samples.
+    p : int, default=10
+        Number of features.
+    sigma : float, default=5.0
+        Standard deviation of noise.
+    random_state : int, default=0
+        Random seed.
+
+    Returns
+    -------
+    X : ndarray of shape (n, p)
+        Feature matrix.
+    y : ndarray of shape (n,)
+        Target vector.
+    """
+    rng = np.random.default_rng(random_state)
+    X = rng.normal(0, 1, (n, p))
+
+    mu = 1 + a * (X[:, 1] > 0) + ((X[:, 2] * X[:, 1]) > 0)
+    mu = (X[:, 0] <= 0) * mu
+    mu = b * mu
+
+    y = mu + rng.normal(0, sigma, n)
+    return X, y
+
+
+
+================================================
+FILE: src/models/__init__.py
+================================================
+from .ccp_ptree import CCPPTree
+from .recursive_ptree import RecursivePTree
+from .ccp_ptree_boosting import CCPPTreeBoosting
+from .recursive_ptree_boosting import RecursivePTreeBoosting
+from .gbm import GBM
+
+__all__ = [
+    "CCPPTree",
+    "RecursivePTree",
+    "CCPPTreeBoosting",
+    "RecursivePTreeBoosting",
+    "GBM",
+]
+
+# Optional: registry for config-driven experiments
+MODEL_REGISTRY = {
+    "CCPPTree": CCPPTree,
+    "RecursivePTree": RecursivePTree,
+    "CCPPTreeBoosting": CCPPTreeBoosting,
+    "RecursivePTreeBoosting": RecursivePTreeBoosting,
+    "GBM": GBM,
+}
+
+
+
+================================================
+FILE: src/models/ccp_ptree.py
+================================================
+from __future__ import annotations
+
+from typing import Optional, Dict, Any, List, Tuple
+import numpy as np
+from sklearn.tree import DecisionTreeRegressor
+
+from utils.stats.pvalues import get_cum_p_val
+
+
+class CCPPTree:
+    """
+    Cost-complexity-pruned regression tree where pruning is selected by a
+    cumulative p-value rule along the CCP path.
+
+    The tree starts from the most-pruned solution (largest alpha),
+    walks toward less-pruned (smaller alpha), and stops as soon as
+    the cumulative p-value becomes non-significant.
+
+    Parameters (constructor)
+    ------------------------
+    significance_level : float, default=0.05
+        Threshold for the cumulative p-value pruning rule.
+        Smaller values → stricter pruning.
+    **tree_params : Any
+        Additional keyword arguments passed directly to
+        sklearn.tree.DecisionTreeRegressor
+        (e.g., max_depth, min_samples_leaf, random_state, etc.).
+
+    Attributes (after fitting)
+    --------------------------
+    model : DecisionTreeRegressor
+        The fitted and pruned sklearn decision tree.
+    ccp_alpha_ : float
+        The alpha (complexity parameter) chosen along the CCP path.
+    p_value_ : float
+        The cumulative p-value corresponding to the chosen tree.
+    n_leaves_ : int
+        Number of leaves in the chosen pruned tree.
+    _path_ : List[Tuple[float, float]]
+        Sequence of (ccp_alpha, p_value) pairs checked during pruning.
+    """
+
+    def __init__(self, *, significance_level: float = 0.05, **tree_params: Any):
+        if not (0 < significance_level):
+            raise ValueError("significance_level must be in (0, +inf).")
+        self.significance_level = float(significance_level)
+
+        # Params forwarded to sklearn's DecisionTreeRegressor
+        self.tree_params: Dict[str, Any] = dict(tree_params)
+
+        # Learned after fit
+        self.model: Optional[DecisionTreeRegressor] = None
+        self.ccp_alpha_: Optional[float] = None
+        self.p_value_: Optional[float] = None
+        self.n_leaves_: Optional[int] = None
+
+        # Diagnostics: list of (alpha, p_value) checked
+        self._path_: List[Tuple[float, float]] = []
+
+    # ----- internal helper -----
+
+    def _fit_with_alpha(self, X, y, alpha: float) -> DecisionTreeRegressor:
+        """Fit a decision tree with a given CCP alpha."""
+        est = DecisionTreeRegressor(ccp_alpha=float(alpha), **self.tree_params)
+        est.fit(X, y)
+        return est
+
+    # ----- main training -----
+
+    def fit(self, X, y, *, random_state: int = 0):
+        """
+        Fit/prune a regression tree by cost-complexity + cumulative p-value rule.
+
+        Inputs
+        ------
+        X : array-like of shape (n_samples, n_features)
+            Training features.
+        y : array-like of shape (n_samples,)
+            Training targets.
+        random_state : int, default=0
+            Ensures determinism if user didn’t already pass a random_state
+            in tree_params. Forwarded to sklearn’s DecisionTreeRegressor.
+
+        Returns
+        -------
+        self : CCPPTree
+            The fitted/pruned model.
+        """
+        # Ensure determinism if user didn’t provide random_state
+        self.tree_params.setdefault("random_state", random_state)
+
+        X = np.asarray(X)
+        y = np.asarray(y)
+        d = X.shape[1]
+
+        # Probe a tree to get the pruning path
+        probe = DecisionTreeRegressor(**self.tree_params)
+        path = probe.cost_complexity_pruning_path(X, y)
+        alphas = np.asarray(path.ccp_alphas, dtype=float)
+
+        # If path is empty → fallback: just fit a plain tree
+        if alphas.size == 0:
+            self.model = DecisionTreeRegressor(**self.tree_params).fit(X, y)
+            self.ccp_alpha_ = float(getattr(self.model, "ccp_alpha", 0.0))
+            self.p_value_ = get_cum_p_val(self.model, d)
+            self.n_leaves_ = int(self.model.tree_.n_leaves)
+            self._path_ = []
+            return self
+
+        # Traverse alphas from most-pruned (largest) to least-pruned (smallest)
+        alphas = np.unique(alphas)[::-1]
+
+        prev = self._fit_with_alpha(X, y, alphas[0])
+        prev_p = get_cum_p_val(prev, d)
+        self._path_ = [(float(alphas[0]), float(prev_p))]
+
+        best = prev
+        best_alpha = float(alphas[0])
+        best_p = float(prev_p)
+
+        for a in alphas[1:]:
+            curr = self._fit_with_alpha(X, y, a)
+            p = get_cum_p_val(curr, d)
+
+            # stop: return previous tree once p-value becomes non-significant
+            if p > self.significance_level:
+                break
+
+            self._path_.append((float(a), float(p)))
+
+            best = curr
+            best_alpha = float(a)
+            best_p = float(p)
+
+        # store chosen model
+        self.model = best
+        self.ccp_alpha_ = best_alpha
+        self.p_value_ = best_p
+        self.n_leaves_ = int(best.tree_.n_leaves)
+        return self
+
+    def predict(self, X):
+        """
+        Predict regression targets for new samples.
+
+        Inputs
+        ------
+        X : array-like of shape (n_samples, n_features)
+
+        Returns
+        -------
+        y_pred : ndarray of shape (n_samples,)
+            Predicted values from the fitted/pruned tree.
+        """
+        if self.model is None:
+            raise RuntimeError("CCPPTree is not fitted. Call .fit() first.")
+        return self.model.predict(X)
+
+    # ----- convenience -----
+
+    def get_staged_complexity(self) -> List[int]:
+        """
+        Return leaf counts for staged learners.
+
+        Since CCPPTree is a single tree (not boosting), this just returns
+        a list with one entry: [n_leaves_].
+        """
+        if self.model is None:
+            raise RuntimeError("CCPPTree is not fitted. Call .fit() first.")
+        return [int(self.model.tree_.n_leaves)]
+
+    def path_diagnostics(self) -> List[Tuple[float, float]]:
+        """
+        Return diagnostic information from pruning.
+
+        Returns
+        -------
+        path : list of (ccp_alpha, p_value)
+            Pairs of CCP complexity parameter and p-value checked during pruning.
+        """
+        return list(self._path_)
+
+    def get_params(self, deep: bool = True) -> Dict[str, Any]:
+        """Return init parameters (significance_level + tree_params)."""
+        return {"significance_level": self.significance_level, **self.tree_params}
+
+    def set_params(self, **params):
+        """Set init parameters (sklearn-style)."""
+        if "significance_level" in params:
+            self.significance_level = float(params.pop("significance_level"))
+        self.tree_params.update(params)
+        return self
+
+    def __repr__(self) -> str:
+        inner = ", ".join(
+            [f"significance_level={self.significance_level}"]
+            + [f"{k}={v!r}" for k, v in self.tree_params.items()]
+        )
+        return f"CCPPTree({inner})"
+
+
+
+================================================
+FILE: src/models/ccp_ptree_boosting.py
+================================================
+from __future__ import annotations
+
+from typing import Optional, Dict, Any, List
+import numpy as np
+
+from models.ccp_ptree import CCPPTree
+
+
+class CCPPTreeBoosting:
+    """
+    Gradient boosting (squared loss) using CCPPTree as base learners.
+
+    The boosting procedure:
+    - Start with F_0(x) = 0 (no prediction).
+    - At each stage t:
+        1. Compute residuals r = y - F_{t-1}(x).
+        2. Fit a CCPPTree to r.
+        3. Update F_t(x) = F_{t-1}(x) + learning_rate * tree_t(x).
+    - Stop early if a tree degenerates to a single leaf.
+
+    Parameters (constructor)
+    ------------------------
+    learning_rate : float, default=0.1
+        Shrinkage applied to each stage’s predictions.
+    max_estimators : int, default=500
+        Maximum number of boosting stages (trees).
+    **base_params : Any
+        Additional keyword arguments forwarded to CCPPTree,
+        e.g. significance_level, max_depth, min_samples_leaf, etc.
+
+    Attributes (after fitting)
+    --------------------------
+    estimators_ : List[CCPPTree]
+        The sequence of fitted base learners.
+    n_estimators_ : int
+        Actual number of stages fitted (<= max_estimators).
+    train_mse_ : List[float]
+        Training mean squared error after each stage.
+    """
+
+    def __init__(
+        self,
+        *,
+        learning_rate: float = 0.1,
+        max_estimators: int = 500,
+        **base_params: Any,
+    ):
+        if learning_rate <= 0:
+            raise ValueError("learning_rate must be > 0")
+        if max_estimators < 1:
+            raise ValueError("max_estimators must be >= 1")
+        self.learning_rate = float(learning_rate)
+        self.max_estimators = int(max_estimators)
+        self.base_params: Dict[str, Any] = dict(base_params)
+
+        # Learned after fitting
+        self.estimators_: List[CCPPTree] = []
+        self.n_estimators_: int = 0
+        self.train_mse_: List[float] = []
+
+    def fit(self, X, y, *, random_state: int = 0):
+        """
+        Fit a boosting ensemble of CCPPTree learners.
+
+        Inputs
+        ------
+        X : array-like of shape (n_samples, n_features)
+            Training features.
+        y : array-like of shape (n_samples,)
+            Training targets.
+        random_state : int, default=0
+            Random seed forwarded to each CCPPTree for reproducibility.
+
+        Returns
+        -------
+        self : CCPPTreeBoosting
+            The fitted boosting model.
+        """
+        X = np.asarray(X)
+        y = np.asarray(y)
+
+        self.estimators_.clear()
+        self.train_mse_.clear()
+
+        # initial prediction F_0(x) = 0
+        F = np.zeros(X.shape[0], dtype=float)
+
+        for _ in range(self.max_estimators):
+            # residuals (squared loss)
+            r = y - F
+
+            # base learner
+            base = CCPPTree(**self.base_params)
+            base.fit(X, r, random_state=random_state)
+
+            self.estimators_.append(base)
+
+            # update ensemble prediction
+            F += self.learning_rate * base.predict(X)
+            self.train_mse_.append(float(np.mean((y - F) ** 2)))
+
+            # early-stop if base learner collapses to a single leaf
+            if base.n_leaves_ == 1:
+                break
+
+        self.n_estimators_ = len(self.estimators_)
+        return self
+
+    def predict(self, X, *, sub_tree: Optional[int] = None):
+        """
+        Predict with the boosting ensemble.
+
+        Inputs
+        ------
+        X : array-like of shape (n_samples, n_features)
+        sub_tree : int or None, default=None
+            If None, use all fitted trees.
+            If int, use only the first `sub_tree` trees.
+
+        Returns
+        -------
+        y_pred : ndarray of shape (n_samples,)
+            Ensemble predictions.
+        """
+        if not self.estimators_:
+            raise RuntimeError(
+                "CCPPTreeBoosting is not fitted. Call .fit() first.")
+        X = np.asarray(X)
+        T = (
+            self.n_estimators_
+            if sub_tree is None
+            else max(0, min(sub_tree, self.n_estimators_))
+        )
+        F = np.zeros(X.shape[0], dtype=float)
+        for base in self.estimators_[:T]:
+            F += self.learning_rate * base.predict(X)
+        return F
+
+    def staged_predict(self, X):
+        """
+        Yield predictions after each stage (1..n_estimators_).
+
+        Useful for plotting learning curves.
+        """
+        if not self.estimators_:
+            raise RuntimeError(
+                "CCPPTreeBoosting is not fitted. Call .fit() first.")
+        X = np.asarray(X)
+        F = np.zeros(X.shape[0], dtype=float)
+        for base in self.estimators_:
+            F += self.learning_rate * base.predict(X)
+            yield F.copy()
+
+    def get_staged_complexity(self) -> List[int]:
+        """
+        Return number of leaves per fitted base learner.
+        """
+        if not self.estimators_:
+            raise RuntimeError(
+                "CCPPTreeBoosting is not fitted. Call .fit() first.")
+        return [int(est.model.tree_.n_leaves) for est in self.estimators_]
+
+    # ----- sklearn-style helpers -----
+
+    def get_params(self, deep: bool = True):
+        """Return init parameters (learning_rate, max_estimators + base_params)."""
+        return {
+            "learning_rate": self.learning_rate,
+            "max_estimators": self.max_estimators,
+            **self.base_params,
+        }
+
+    def set_params(self, **params):
+        """Set init parameters (sklearn-style)."""
+        if "learning_rate" in params:
+            self.learning_rate = float(params.pop("learning_rate"))
+        if "max_estimators" in params:
+            self.max_estimators = int(params.pop("max_estimators"))
+        self.base_params.update(params)
+        return self
+
+    def __repr__(self) -> str:
+        inner = ", ".join(
+            [
+                f"learning_rate={self.learning_rate}",
+                f"max_estimators={self.max_estimators}",
+            ]
+            + [f"{k}={v!r}" for k, v in self.base_params.items()]
+        )
+        return f"CCPPTreeBoosting({inner})"
+
+
+
+================================================
+FILE: src/models/gbm.py
+================================================
+from __future__ import annotations
+from typing import Optional, Sequence
+
+import numpy as np
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import KFold
+
+
+class GBM:
+    """
+    Gradient Boosting wrapper with optional CV-based early stopping.
+
+    If k_folds >= 2, the number of boosting stages used is chosen by cross-validation:
+      - Train a GradientBoostingRegressor up to `max_estimators`.
+      - Track validation error using staged predictions.
+      - Pick the number of stages that minimizes MSE on each fold.
+      - Use the mean (rounded) across folds as the final number of stages.
+
+    If k_folds = 1 (default), the model simply trains for `max_estimators` stages.
+
+    Parameters (constructor)
+    ------------------------
+    k_folds : int, default=1
+        Number of cross-validation folds to select the number of stages.
+        If 1, disables CV and uses `max_estimators` directly.
+    max_estimators : int, default=500
+        Upper bound on the number of boosting stages to train.
+    **parameters : Any
+        Additional keyword arguments passed directly to
+        sklearn.ensemble.GradientBoostingRegressor
+        (e.g., learning_rate, max_depth, subsample, etc.).
+
+    Attributes (after fitting)
+    --------------------------
+    model : GradientBoostingRegressor
+        The fitted sklearn GradientBoostingRegressor.
+    n_estimators_ : int
+        The number of stages actually chosen (via CV or equal to `max_estimators` when k_folds=1).
+    """
+
+    def __init__(
+        self,
+        *,
+        k_folds: int = 1,
+        max_estimators: int = 500,
+        **parameters,
+    ):
+        if k_folds < 1:
+            raise ValueError("k_folds must be a positive integer")
+        self.k_folds = int(k_folds)
+        self.max_estimators = int(max_estimators)
+        self.parameters = dict(parameters)
+
+        self.model: Optional[GradientBoostingRegressor] = None
+        self.n_estimators_: Optional[int] = None  # chosen number of stages after fit
+
+    def _best_iters_cv(
+        self, X: np.ndarray, y: np.ndarray, random_state: int
+    ) -> Sequence[int]:
+        """
+        Perform k-fold CV to find the best number of boosting stages (1-based).
+
+        Returns
+        -------
+        best_iters : list of int
+            The optimal number of stages found on each fold (1..max_estimators).
+        """
+        kf = KFold(n_splits=self.k_folds, shuffle=True, random_state=random_state)
+        best_iters = []
+        for tr_idx, te_idx in kf.split(X):
+            X_tr, X_te = X[tr_idx], X[te_idx]
+            y_tr, y_te = y[tr_idx], y[te_idx]
+
+            model = GradientBoostingRegressor(
+                n_estimators=self.max_estimators,  # sklearn's arg
+                random_state=random_state,
+                **self.parameters,
+            )
+            model.fit(X_tr, y_tr)
+
+            best_mse = float("inf")
+            best_iter = 1
+            for t, y_pred in enumerate(model.staged_predict(X_te), start=1):
+                mse = mean_squared_error(y_te, y_pred)
+                if mse < best_mse:
+                    best_mse = mse
+                    best_iter = t
+            best_iters.append(best_iter)
+        return best_iters
+
+    def fit(self, X, y, random_state: int = 0):
+        """
+        Fit the Gradient Boosting model, optionally selecting the number of stages by CV.
+
+        Inputs
+        ------
+        X : array-like of shape (n_samples, n_features)
+            Training features.
+        y : array-like of shape (n_samples,)
+            Training targets.
+        random_state : int, default=0
+            Seed for reproducibility, passed to sklearn’s GBR.
+
+        Returns
+        -------
+        self : GBM
+            The fitted wrapper object.
+        """
+        X = np.asarray(X)
+        y = np.asarray(y)
+
+        if self.k_folds >= 2:
+            best_iters = self._best_iters_cv(X, y, random_state)
+            # Use rounded mean; ensure at least 1
+            n_best = max(1, int(round(sum(best_iters) / len(best_iters))))
+        else:
+            n_best = self.max_estimators
+
+        self.n_estimators_ = n_best
+        self.model = GradientBoostingRegressor(
+            n_estimators=n_best,  # sklearn's arg
+            random_state=random_state,
+            **self.parameters,
+        )
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """Predict regression targets for new samples."""
+        if self.model is None:
+            raise RuntimeError("GBM is not fitted. Call .fit() first.")
+        return self.model.predict(X)
+
+    def staged_predict(self, X):
+        """
+        Yield predictions after each stage (1..n_estimators_).
+        """
+        if self.model is None:
+            raise RuntimeError("GBM is not fitted. Call .fit() first.")
+        return self.model.staged_predict(X)
+
+    def get_staged_complexity(self):
+        """
+        Return number of leaves per weak learner.
+
+        For single-output GBR, estimators_ has shape (n_estimators_, 1).
+
+        Returns
+        -------
+        list of int
+            Leaf counts for each boosting stage.
+        """
+        if self.model is None:
+            raise RuntimeError("GBM is not fitted. Call .fit() first.")
+        return [est[0].tree_.n_leaves for est in self.model.estimators_]
+
+    # ----- sklearn-style helpers -----
+
+    def get_params(self, deep: bool = True):
+        """Return init parameters (wrapper + GBR)."""
+        return {
+            "k_folds": self.k_folds,
+            "max_estimators": self.max_estimators,
+            **self.parameters,
+        }
+
+    def set_params(self, **params):
+        """Set init parameters (wrapper + GBR)."""
+        if "k_folds" in params:
+            self.k_folds = int(params.pop("k_folds"))
+        if "max_estimators" in params:
+            self.max_estimators = int(params.pop("max_estimators"))
+        self.parameters.update(params)
+        return self
+
+    def __repr__(self) -> str:
+        inner = ", ".join(
+            [f"k_folds={self.k_folds}", f"max_estimators={self.max_estimators}"]
+            + [f"{k}={v!r}" for k, v in self.parameters.items()]
+        )
+        return f"GBM({inner})"
+
+
+
+================================================
+FILE: src/models/recursive_ptree.py
+================================================
+from __future__ import annotations
+from typing import Optional, Dict, Any
+import numpy as np
+from sklearn.tree import DecisionTreeRegressor, _tree
+
+from utils.stats.pvalues import get_p_values
+from utils.prune import cond_scalar
+
+
+class RecursivePTree:
+    """
+    A regression tree (CART) pruned using recursive hypothesis testing.
+
+    Each internal split is assigned a p-value via the YD statistic + Psi mapping.
+    The tree is then pruned **top-down**, removing subtrees if their p-value
+    meets the (threshold, prune_if) condition.
+
+    Parameters (constructor)
+    ------------------------
+    threshold : float
+        The p-value threshold used for pruning.
+    prune_if : str, default=">="
+        Comparator applied to p-values against threshold.
+        Must be one of {">=", ">", "<=", "<"}.
+        Example: if prune_if=">=" and threshold=0.05, then
+        nodes with p >= 0.05 are pruned.
+    **tree_params : Any
+        Additional keyword arguments passed directly to
+        sklearn.tree.DecisionTreeRegressor
+        (e.g., max_depth, min_samples_leaf, random_state, etc.).
+
+    Attributes (after fitting)
+    --------------------------
+    model : DecisionTreeRegressor
+        The fitted and pruned sklearn decision tree.
+    d : int
+        Number of features in the training data (X.shape[1]).
+    pvals_ : ndarray of shape (n_nodes,)
+        Vector of per-node p-values (=-1.0 for leaves).
+    n_leaves_ : int
+        Number of leaves in the final pruned tree.
+    """
+
+    def __init__(self, *, threshold: float, prune_if: str = ">=", **tree_params: Any):
+        if prune_if not in {">=", ">", "<=", "<"}:
+            raise ValueError("prune_if must be one of '>=', '>', '<=', '<'")
+
+        self.threshold = float(threshold)
+        self.d: Optional[int] = None
+        self.prune_if = prune_if
+        self.tree_params: Dict[str, Any] = dict(tree_params)
+
+        # Learned after fit
+        self.model: Optional[DecisionTreeRegressor] = None
+        self.pvals_: Optional[np.ndarray] = None
+        self.n_leaves_: Optional[int] = None
+
+    def fit(self, X, y, *, random_state: int = 0):
+        """
+        Fit and prune the recursive p-value regression tree.
+
+        Inputs
+        ------
+        X : array-like of shape (n_samples, n_features)
+            Training features.
+        y : array-like of shape (n_samples,)
+            Training targets.
+        random_state : int, default=0
+            Ensures determinism if user didn’t already pass a random_state
+            in tree_params. Forwarded to sklearn’s DecisionTreeRegressor.
+
+        Returns
+        -------
+        self : RecursivePTree
+            The fitted/pruned model.
+        """
+        # Ensure determinism if user didn’t provide random_state
+        self.tree_params.setdefault("random_state", random_state)
+
+        X = np.asarray(X)
+        y = np.asarray(y)
+
+        self.d = int(X.shape[1])
+
+        est = DecisionTreeRegressor(**self.tree_params)
+        est.fit(X, y)
+
+        # Compute p-values once on fitted tree
+        pvals = get_p_values(est, d=self.d)
+        self._prune_topdown_inplace(est, pvals, self.threshold, self.prune_if)
+
+        self.model = est
+        self.updated_pvals_ = get_p_values(est, d=self.d)
+        self.n_leaves_ = count_leaves(est)
+        return self
+
+    def predict(self, X):
+        """
+        Predict regression targets for new samples.
+
+        Inputs
+        ------
+        X : array-like of shape (n_samples, n_features)
+
+        Returns
+        -------
+        y_pred : ndarray of shape (n_samples,)
+            Predicted values from the fitted/pruned tree.
+        """
+        if self.model is None:
+            raise RuntimeError(
+                "RecursivePTree is not fitted. Call .fit() first.")
+        return self.model.predict(X)
+
+    # --------- internal pruning ---------
+
+    @staticmethod
+    def _prune_topdown_inplace(
+        est: DecisionTreeRegressor, pvals: np.ndarray, threshold: float, prune_if: str
+    ) -> None:
+        """
+        Modify a fitted DecisionTreeRegressor in place,
+        pruning subtrees whose root node meets the condition
+        (p, threshold, prune_if).
+        """
+        T = est.tree_
+
+        def _prune_subtree(root_id: int) -> None:
+            """Mark root_id and all its descendants as leaves."""
+            stack = [root_id]
+            while stack:
+                nid = stack.pop()
+                L, R = T.children_left[nid], T.children_right[nid]
+                if L != _tree.TREE_LEAF:
+                    stack.extend([L, R])
+                T.children_left[nid] = _tree.TREE_LEAF
+                T.children_right[nid] = _tree.TREE_LEAF
+
+        def _dfs(node_id: int) -> None:
+            L, R = T.children_left[node_id], T.children_right[node_id]
+            if L == _tree.TREE_LEAF:
+                return
+            p = float(pvals[node_id])
+            if cond_scalar(p, threshold, prune_if):
+                _prune_subtree(node_id)
+                return
+            _dfs(L)
+            _dfs(R)
+
+        _dfs(0)
+
+    # --------- sklearn-style helpers ---------
+
+    def get_params(self, deep: bool = True) -> Dict[str, Any]:
+        """Return init parameters (threshold, d, prune_if + tree_params)."""
+        return {
+            "threshold": self.threshold,
+            "d": self.d,
+            "prune_if": self.prune_if,
+            **self.tree_params,
+        }
+
+    def set_params(self, **params):
+        """Set init parameters (sklearn-style)."""
+        if "threshold" in params:
+            self.threshold = float(params.pop("threshold"))
+        if "d" in params:
+            self.d = int(params.pop("d"))
+        if "prune_if" in params:
+            val = params.pop("prune_if")
+            if val not in {">=", ">", "<=", "<"}:
+                raise ValueError(
+                    "prune_if must be one of '>=', '>', '<=', '<'")
+            self.prune_if = val
+        self.tree_params.update(params)
+        return self
+
+    def __repr__(self) -> str:
+        inner = ", ".join(
+            [
+                f"threshold={self.threshold}",
+                f"d={self.d}",
+                f"prune_if='{self.prune_if}'",
+            ]
+            + [f"{k}={v!r}" for k, v in self.tree_params.items()]
+        )
+        return f"RecursivePTree({inner})"
+
+
+def count_leaves(est):
+    """Count leaves in a (possibly pruned) DecisionTreeRegressor."""
+    T = est.tree_
+    n_leaves = 0
+    stack = [0]
+    while stack:
+        nid = stack.pop()
+        L, R = T.children_left[nid], T.children_right[nid]
+        if L == _tree.TREE_LEAF:
+            n_leaves += 1
+        else:
+            stack.extend([L, R])
+    return n_leaves
+
+
+
+================================================
+FILE: src/models/recursive_ptree_boosting.py
+================================================
+from __future__ import annotations
+
+from typing import Optional, Dict, Any, List
+import numpy as np
+
+from models.recursive_ptree import RecursivePTree
+
+
+class RecursivePTreeBoosting:
+    """
+    Gradient boosting (squared loss) using RecursivePTree as base learners.
+
+    Parameters (constructor)
+    ------------------------
+    learning_rate : float, default=0.1
+        Shrinkage factor applied to each stage’s predictions.
+    max_estimators : int, default=500
+        Maximum number of boosting stages.
+    **base_params : Any
+        Additional keyword arguments passed to RecursivePTree,
+        e.g. threshold, prune_if, max_depth, min_samples_leaf, etc.
+
+    Attributes (after fit)
+    ----------------------
+    estimators_ : List[RecursivePTree]
+        Sequence of fitted base learners.
+    n_estimators_ : int
+        Number of stages actually fitted (<= max_estimators).
+    train_mse_ : List[float]
+        Training mean squared error after each stage.
+    """
+
+    def __init__(
+        self,
+        *,
+        learning_rate: float = 0.1,
+        max_estimators: int = 500,
+        **base_params: Any,
+    ):
+        if learning_rate <= 0:
+            raise ValueError("learning_rate must be > 0")
+        if max_estimators < 1:
+            raise ValueError("max_estimators must be >= 1")
+        self.learning_rate = float(learning_rate)
+        self.max_estimators = int(max_estimators)
+        self.base_params: Dict[str, Any] = dict(base_params)
+
+        # Learned after fitting
+        self.estimators_: List[RecursivePTree] = []
+        self.n_estimators_: int = 0
+        self.train_mse_: List[float] = []
+
+    def fit(self, X, y, *, random_state: int = 0):
+        """
+        Fit a boosting ensemble of RecursivePTree learners.
+
+        Inputs
+        ------
+        X : array-like of shape (n_samples, n_features)
+            Training features.
+        y : array-like of shape (n_samples,)
+            Training targets.
+        random_state : int, default=0
+            Base seed for reproducibility.
+            Each stage uses random_state + t (stage index) so splits differ.
+
+        Returns
+        -------
+        self : RecursivePTreeBoosting
+            The fitted boosting model.
+        """
+        X = np.asarray(X)
+        y = np.asarray(y)
+
+        self.estimators_.clear()
+        self.train_mse_.clear()
+
+        # initial prediction F_0(x) = 0
+        F = np.zeros(X.shape[0], dtype=float)
+
+        for t in range(self.max_estimators):
+            # residuals (gradient for squared loss)
+            r = y - F
+
+            # fit a RecursivePTree to residuals
+            base = RecursivePTree(**self.base_params)
+            base.fit(X, r, random_state=random_state + t)
+
+            self.estimators_.append(base)
+
+            # update ensemble prediction
+            F += self.learning_rate * base.predict(X)
+            self.train_mse_.append(float(np.mean((y - F) ** 2)))
+
+            # early-stop if tree degenerates to a stump
+            if base.n_leaves_ == 1:
+                break
+
+        self.n_estimators_ = len(self.estimators_)
+        return self
+
+    def predict(self, X, *, sub_tree: Optional[int] = None):
+        """
+        Predict with the fitted boosting ensemble.
+
+        Inputs
+        ------
+        X : array-like of shape (n_samples, n_features)
+        sub_tree : int or None, default=None
+            If None, use all fitted trees.
+            If int, use only the first `sub_tree` trees.
+
+        Returns
+        -------
+        y_pred : ndarray of shape (n_samples,)
+            Ensemble predictions.
+        """
+        if not self.estimators_:
+            raise RuntimeError(
+                "RecursivePTreeBoosting is not fitted. Call .fit() first."
+            )
+        X = np.asarray(X)
+        T = (
+            self.n_estimators_
+            if sub_tree is None
+            else max(0, min(sub_tree, self.n_estimators_))
+        )
+        F = np.zeros(X.shape[0], dtype=float)
+        for base in self.estimators_[:T]:
+            F += self.learning_rate * base.predict(X)
+        return F
+
+    def staged_predict(self, X):
+        """
+        Yield predictions after each stage (1..n_estimators_).
+
+        Useful for diagnostics and learning curves.
+        """
+        if not self.estimators_:
+            raise RuntimeError(
+                "RecursivePTreeBoosting is not fitted. Call .fit() first."
+            )
+        X = np.asarray(X)
+        F = np.zeros(X.shape[0], dtype=float)
+        for base in self.estimators_:
+            F += self.learning_rate * base.predict(X)
+            yield F.copy()
+
+    def get_staged_complexity(self) -> List[int]:
+        """
+        Return number of leaves per fitted base learner.
+        """
+        if not self.estimators_:
+            raise RuntimeError(
+                "RecursivePTreeBoosting is not fitted. Call .fit() first."
+            )
+        return [int(est.model.tree_.n_leaves) for est in self.estimators_]
+
+    # ----- sklearn-style helpers -----
+
+    def get_params(self, deep: bool = True):
+        """Return init parameters (learning_rate, max_estimators + base_params)."""
+        return {
+            "learning_rate": self.learning_rate,
+            "max_estimators": self.max_estimators,
+            **self.base_params,
+        }
+
+    def set_params(self, **params):
+        """Set init parameters (sklearn-style)."""
+        if "learning_rate" in params:
+            self.learning_rate = float(params.pop("learning_rate"))
+        if "max_estimators" in params:
+            self.max_estimators = int(params.pop("max_estimators"))
+        self.base_params.update(params)
+        return self
+
+    def __repr__(self) -> str:
+        inner = ", ".join(
+            [
+                f"learning_rate={self.learning_rate}",
+                f"max_estimators={self.max_estimators}",
+            ]
+            + [f"{k}={v!r}" for k, v in self.base_params.items()]
+        )
+        return f"RecursivePTreeBoosting({inner})"
+
+
+
+================================================
+FILE: src/numerical_illustrations/figure1_table1.py
+================================================
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeRegressor
+
+from utils.stats.pvalues import get_YD_statistics, Psi  # your custom functions
+
+plt.style.use("default")
+
+# -----------------------
+# Parameters
+# -----------------------
+M = 10_000  # Monte Carlo repetitions
+Ns = [50, 1000]  # sample sizes
+ds = [1, 2, 10]  # feature dimensions
+rhos = [0.0, 0.8]  # independent vs dependent covariates
+sigma = 1.0
+min_leaves = 1
+delta = 0.05
+
+
+# -----------------------
+# Helper
+# -----------------------
+def simulate_empirical_quantile(N, d, rho, alpha=0.95):
+    """Simulate empirical and approximate quantile of YD statistic."""
+    cov = rho * np.ones((d, d)) + (1 - rho) * np.eye(d)
+    mu = np.zeros(d)
+
+    YD_statistics = []
+    for _ in range(M):
+        X = np.random.multivariate_normal(mu, cov, size=N)
+        Y = np.random.normal(0.0, sigma, size=N)
+
+        cart = DecisionTreeRegressor(
+            max_depth=1, min_samples_leaf=min_leaves).fit(X, Y)
+        YD_statistics.append(get_YD_statistics(cart)[0])
+
+    # empirical quantile
+    Z = np.sort(YD_statistics)
+    emp_q = np.quantile(Z, alpha)
+
+    # approximate quantile
+    x = np.arange(0.1, 20, 0.001)
+    F_approx = [1 - Psi(N, u, d) for u in x]
+    approx_q = x[np.searchsorted(F_approx, alpha)]
+
+    return emp_q, approx_q, (Z, np.arange(len(Z)) / float(len(Z)), x, F_approx)
+
+
+# -----------------------
+# Table 1 results
+# -----------------------
+table_emp = {rho: {} for rho in rhos}
+table_approx = {}
+
+for rho in rhos:
+    for d in ds:
+        for N in Ns:
+            emp_q, approx_q, _ = simulate_empirical_quantile(N, d, rho)
+            table_emp[rho][(d, N)] = emp_q
+            table_approx[(d, N)] = approx_q
+
+# Print in LaTeX table format
+print("\n--- Table 1 values ---")
+for rho in rhos:
+    print(f"\nRho = {rho}")
+    for d in ds:
+        row = f"d={d} : "
+        for N in Ns:
+            row += f"{table_emp[rho][(d, N)]:.2f}  "
+        print(row)
+
+print("\nApproximation (rho-independent of rho):")
+for d in ds:
+    row = f"d={d} : "
+    for N in Ns:
+        row += f"{table_approx[(d, N)]:.2f}  "
+    print(row)
+
+
+# -----------------------
+# Figure 1 (4-panel plot)
+# -----------------------
+fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+plt.subplots_adjust(hspace=0.3, wspace=0.3)
+
+for i, rho in enumerate(rhos):
+    for j, N in enumerate(Ns):
+        d = 10  # figure uses d=10 fixed
+        emp_q, approx_q, (Z, F_emp, x, F_approx) = simulate_empirical_quantile(
+            N, d, rho
+        )
+
+        ax = axes[i, j]
+        ax.plot(Z, F_emp, label="Empirical CDF", color="blue")  # <-- fixed
+        ax.plot(x, F_approx, label="Approximation", color="orange")
+        ax.axhline(y=0.95, linestyle="--", color="blue")
+
+        ax.set_xlim(10, 18)
+        ax.set_ylim(0.5, 1.0)
+        ax.set_title(f"rho={rho}, N={N}, d={d}")
+        if i == 1:
+            ax.set_xlabel("u (YD statistic)")
+        if j == 0:
+            ax.set_ylabel("F(u)")
+
+axes[0, 0].legend()
+plt.savefig("Figure1.pdf", bbox_inches="tight", transparent=True)
+plt.show()
+
+
+
+================================================
+FILE: src/numerical_illustrations/figure2.py
+================================================
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeRegressor
+
+from utils.stats.pvalues import Psi, get_p_values  # your custom functions
+
+# -----------------------
+# Parameters
+# -----------------------
+M = 1000  # Monte Carlo repetitions
+d = 10  # feature dimension
+rho = 0.8  # correlation for dependent covariates
+sigma = 1.0  # noise standard deviation
+delta = 0.05  # significance level
+r = 0.2  # decay rate for kappa = N^(-r)
+min_leaves = 1  # minimal leaf size for CART
+x_axis_bound = 6000  # maximum sample size
+step = 100  # step size for sample sizes
+
+# Covariance for dependent covariates
+muX = np.zeros(d)
+covX = rho * np.ones((d, d)) + (1 - rho) * np.eye(d)
+
+
+# -----------------------
+# Helper: approximate quantile from Psi
+# -----------------------
+def get_appr_quantile(N, delta, d):
+    x = np.arange(0.1, 20, 0.01)
+    for u in x:
+        if Psi(N, u, d) <= delta:
+            return u
+    return x[-1]
+
+
+# -----------------------
+# Arrays for results
+# -----------------------
+x_axis = np.arange(100, x_axis_bound, step)
+frac_correct_indep = []
+frac_correct_dep = []
+kappas = []
+
+
+# -----------------------
+# Independent covariates
+# -----------------------
+for N in x_axis:
+    kappa = N ** (-r)
+    kappas.append(kappa)
+    u = get_appr_quantile(N, delta, d)
+
+    p_vals = []
+    for _ in range(M):
+        # Independent standard normal features
+        X = np.random.normal(0, 1, size=(N, d))
+        mus = [0 if x[0] <= 0 else kappa for x in X]
+        Y = np.random.normal(mus, sigma, size=N)
+
+        cart = DecisionTreeRegressor(
+            max_depth=1, min_samples_leaf=min_leaves).fit(X, Y)
+        p_vals.append(get_p_values(cart, d)[0])
+
+    frac_correct_indep.append(np.mean([p <= delta for p in p_vals]))
+
+
+# -----------------------
+# Dependent covariates
+# -----------------------
+for N in x_axis:
+    kappa = N ** (-r)
+    u = get_appr_quantile(N, delta, d)
+
+    p_vals = []
+    for _ in range(M):
+        # Correlated Gaussian features
+        X = np.random.multivariate_normal(muX, covX, size=N)
+        mus = [0 if x[0] <= 0 else kappa for x in X]
+        Y = np.random.normal(mus, sigma, size=N)
+
+        cart = DecisionTreeRegressor(
+            max_depth=1, min_samples_leaf=min_leaves).fit(X, Y)
+        p_vals.append(get_p_values(cart, d)[0])
+
+    frac_correct_dep.append(np.mean([p <= delta for p in p_vals]))
+
+
+# -----------------------
+# Plot
+# -----------------------
+plt.style.use("default")
+fig, ax = plt.subplots(figsize=(6, 4))
+
+ax.plot(x_axis, frac_correct_dep, label="Dependent covariates", color="C0")
+ax.plot(x_axis, frac_correct_indep, label="Independent covariates", color="C1")
+ax.plot(x_axis, kappas, label=r"$\kappa = N^{-r}$", color="C2")
+ax.axhline(y=0.95, linestyle="--", color="gray")
+
+ax.set_ylim(0, 1)
+ax.set_xlim(min(x_axis), max(x_axis))
+ax.set_xlabel("Sample size $N$")
+ax.set_ylabel("Fraction of correct detections")
+ax.legend()
+
+plt.title("Figure 2: Detection rate vs sample size", fontsize=12)
+plt.savefig("Figure2.pdf", bbox_inches="tight", transparent=True)
+plt.show()
+
+
+
+================================================
+FILE: src/numerical_illustrations/figure4_figure5.py
+================================================
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeRegressor
+
+from utils.stats.pvalues import get_cum_p_val
+from utils.metrics import mse
+
+
+def run_and_plot(
+    a=1,
+    b=1,
+    N=500,
+    d=10,
+    sigma=1.0,
+    delta=0.05,
+    K=4,
+    min_dp_leaf=20,
+    seed_train=20,
+    seed_test=99,
+    title="Figure",
+):
+    """
+    Run the Neufeld regression tree experiment for given (a, b)
+    and plot two side-by-side panels:
+      Left: Test MSEP (blue) vs Train MSE (orange)
+      Right: Cumulative p-values across subtrees
+    """
+    np.random.seed(seed_train)
+
+    # Gaussian design
+    covX = np.eye(d)  # independent features
+    muX = np.zeros(d)
+    X = np.random.multivariate_normal(muX, covX, size=N)
+
+    # Neufeld regression function
+    def mu(x):
+        return (
+            b
+            * (1 if x[0] <= 0 else 0)
+            * (1 + a * (1 if x[1] > 0 else 0) + (1 if x[1] * x[2] > 0 else 0))
+        )
+
+    Y = np.random.normal([mu(x) for x in X], sigma, N)
+
+    # Fit CART
+    cart = DecisionTreeRegressor(
+        max_depth=K, min_samples_leaf=min_dp_leaf, random_state=seed_train
+    ).fit(X, Y)
+
+    # Validation data
+    np.random.seed(seed_test)
+    X_test = np.random.normal(0, 1, size=(N, d))
+    Y_test = np.random.normal([mu(x) for x in X_test], sigma, N)
+
+    # Subtree pruning
+    ccp_alphas = cart.cost_complexity_pruning_path(X, Y)["ccp_alphas"]
+    flipped_ccps = np.flip(ccp_alphas)
+
+    mse_train_list, mse_test_list, cum_pvals = [], [], []
+    n_leaves = [0]
+    max_subtree_cum_pvals05 = 0
+
+    for alpha in flipped_ccps:
+        subtree = DecisionTreeRegressor(
+            max_depth=K,
+            min_samples_leaf=min_dp_leaf,
+            random_state=seed_train,
+            ccp_alpha=alpha,
+        ).fit(X, Y)
+
+        pred_subtree_train = subtree.predict(X)
+        pred_subtree_test = subtree.predict(X_test)
+
+        mse_sub = mse(Y, pred_subtree_train)
+        msep_sub = mse(Y_test, pred_subtree_test)
+        cum_pval = get_cum_p_val(subtree, d)
+
+        n_leaves.append(subtree.get_n_leaves())
+        n_diff = n_leaves[-1] - n_leaves[-2]
+
+        mse_train_list.extend([mse_sub] * n_diff)
+        mse_test_list.extend([msep_sub] * n_diff)
+        cum_pvals.extend([cum_pval] * n_diff)
+
+        if cum_pval <= delta:
+            max_subtree_cum_pvals05 = len(mse_test_list) + 1 - n_diff
+
+    # --- Plot ---
+    x_axis = range(1, len(mse_test_list) + 1)
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    plt.style.use("default")
+
+    # Left: errors
+    axes[0].plot(x_axis, mse_test_list, label="MSEP (test)", color="blue")
+    axes[0].plot(x_axis, mse_train_list, label="MSE (train)", color="orange")
+    axes[0].axvline(x=max_subtree_cum_pvals05, linestyle="--", color="blue")
+    axes[0].set_xlabel("Number of leaves")
+    axes[0].set_ylabel("Error")
+    axes[0].legend()
+
+    # Right: cumulative p-values
+    axes[1].plot(x_axis, cum_pvals, color="blue")
+    axes[1].axvline(x=max_subtree_cum_pvals05, linestyle="--", color="blue")
+    axes[1].set_xlabel("Number of leaves")
+    axes[1].set_ylabel("Cumulative p-value")
+
+    fig.suptitle(title)
+    plt.tight_layout()
+    plt.show()
+
+
+# -----------------------
+#   Run Figure 4 (b=1)
+# -----------------------
+run_and_plot(a=1, b=1, title="Figure 4 (a=1, b=1)")
+
+# -----------------------
+#   Run Figure 5 (b=0.5)
+# -----------------------
+run_and_plot(a=1, b=0.5, title="Figure 5 (a=1, b=0.5)")
+
+
+
+================================================
+FILE: src/numerical_illustrations/boosting/generate_results_table.py
+================================================
+import json
+import pandas as pd
+
+# Load results
+with open("src/numerical_illustrations/outputs/run_variants.json", "r") as f:
+    results = json.load(f)
+
+rows = []
+for ds_name, ds_results in results["datasets"].items():
+    for model_key, metrics in ds_results.items():
+        rows.append(
+            {
+                "dataset": ds_name,
+                "model": model_key,
+                "rmse_train": metrics.get("rmse_train"),
+                "rmse_test": metrics.get("rmse_test"),
+                "n_estimators": metrics.get("n_estimators_"),
+                # new fields
+                "best_iter": metrics.get("best_iter"),
+                "best_rmse": metrics.get("best_rmse"),
+                "best_complexity": metrics.get("best_complexity"),
+            }
+        )
+
+df = pd.DataFrame(rows)
+
+# Print one table per dataset
+for ds in df["dataset"].unique():
+    print(f"\n=== Results for {ds} ===")
+    print(
+        df[df["dataset"] == ds][
+            [
+                "model",
+                "rmse_train",
+                "rmse_test",
+                "n_estimators",
+                "best_iter",
+                "best_rmse",
+                # "best_complexity",
+            ]
+        ]
+    )
+
+
+
+================================================
+FILE: src/numerical_illustrations/boosting/run_variants.py
+================================================
+from __future__ import annotations
+from pathlib import Path
+import json
+from typing import Any, Dict, List
+
+import numpy as np
+import yaml
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
+
+from data import load_dataset
+from models import GBM, CCPPTreeBoosting, RecursivePTreeBoosting
+from utils.metrics import rmse
+
+MODEL_REGISTRY = {
+    "GBM": GBM,
+    "CCPPTreeBoosting": CCPPTreeBoosting,
+    "RecursivePTreeBoosting": RecursivePTreeBoosting,
+}
+
+
+def _load_cfg(path: str | Path) -> Dict[str, Any]:
+    with open(path, "r") as f:
+        return yaml.safe_load(f)
+
+
+def _build_models(models_cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Expand {ModelType: {variants: {name: params}}} into concrete instances.
+    Keys use 'ModelType/variant' for clarity in results.
+    """
+    built: Dict[str, Any] = {}
+    for model_type, block in models_cfg.items():
+        if model_type not in MODEL_REGISTRY:
+            raise KeyError(f"Unknown model type '{model_type}'.")
+        Model = MODEL_REGISTRY[model_type]
+        variants = block.get("variants", {})
+        if not variants:
+            raise ValueError(f"No variants provided for '{model_type}'.")
+        for var_name, params in variants.items():
+            # copy to avoid mutating cfg
+            p = dict(params)
+            key = f"{model_type}/{var_name}"
+            built[key] = Model(**p)
+    return built
+
+
+def _evaluate(model, Xtr, ytr, Xte, yte):
+    y_tr = model.predict(Xtr)
+    y_te = model.predict(Xte)
+
+    out = {
+        "rmse_train": float(np.sqrt(mean_squared_error(ytr, y_tr))),
+        "rmse_test": float(np.sqrt(mean_squared_error(yte, y_te))),
+        "n_estimators_": int(getattr(model, "n_estimators_", 0))
+        if getattr(model, "n_estimators_", None) is not None
+        else None,
+    }
+
+    staged_rmse = None
+    staged_complexity = None
+    best_iter = None
+    best_rmse = None
+    best_complexity = None
+
+    if hasattr(model, "get_staged_complexity"):
+        try:
+            staged_complexity = model.get_staged_complexity()
+            staged_complexity = (
+                [int(v) for v in staged_complexity]
+                if staged_complexity is not None
+                else None
+            )
+        except Exception:
+            staged_complexity = None
+
+    if hasattr(model, "staged_predict"):
+        staged_rmse = []
+        for yp in model.staged_predict(Xte):
+            staged_rmse.append(rmse(yte, yp))
+
+        if staged_rmse:
+            best_iter = int(np.argmin(staged_rmse) + 1)
+            best_rmse = float(staged_rmse[best_iter])
+            if staged_complexity is not None and best_iter < len(staged_complexity):
+                best_complexity = int(staged_complexity[best_iter])
+
+    out.update(
+        {
+            "staged_rmse": staged_rmse,
+            "staged_complexity": staged_complexity,
+            "best_iter": best_iter,
+            "best_rmse": best_rmse,
+            "best_complexity": best_complexity,
+        }
+    )
+
+    return out
+
+
+def run(cfg_path: str, outdir: str | Path = "src/numerical_illustrations/outputs"):
+    cfg = _load_cfg(cfg_path)
+    seed = int(cfg.get("random_seed", 0))
+
+    outdir = Path(outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    all_results: Dict[str, Any] = {"config": cfg, "datasets": {}}
+
+    for ds_name in cfg["datasets"]:
+        print(f"=== Dataset: {ds_name} ===")
+        X, y = load_dataset(ds_name)
+        Xtr, Xte, ytr, yte = train_test_split(
+            X, y, test_size=0.2, random_state=seed)
+
+        models = _build_models(cfg["models"])
+        ds_results: Dict[str, Any] = {}
+        for key, model in models.items():
+            print(f"  -> Training {key}")
+            model.fit(Xtr, ytr, random_state=seed)
+            ds_results[key] = _evaluate(model, Xtr, ytr, Xte, yte)
+
+        all_results["datasets"][ds_name] = ds_results
+
+    outpath = outdir / "run_variants.json"
+    with open(outpath, "w") as f:
+        json.dump(all_results, f, indent=2)
+    print(f"Saved results → {outpath}")
+
+
+if __name__ == "__main__":
+    run("src/numerical_illustrations/boosting/config.yaml")
+
+
+
+================================================
+FILE: src/utils/__init__.py
+================================================
+[Empty file]
+
+
+================================================
+FILE: src/utils/metrics.py
+================================================
+import numpy as np
+
+
+def mse(y_true, y_pred) -> float:
+    """Mean Squared Error (MSE) between true and predicted values."""
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    return float(np.mean((y_true - y_pred) ** 2))
+
+
+def rmse(y_true, y_pred) -> float:
+    """Root Mean Squared Error (RMSE) between true and predicted values."""
+    return float(np.sqrt(mse(y_true, y_pred)))
+
+
+
+================================================
+FILE: src/utils/protocols.py
+================================================
+[Empty file]
+
+
+================================================
+FILE: src/utils/prune.py
+================================================
+from __future__ import annotations
+
+from typing import Iterable
+import numpy as np
+from sklearn.tree import _tree, DecisionTreeRegressor
+
+__all__ = [
+    "cond_scalar",
+    "cond_vec",
+    "prune_subtree_inplace",
+    "prune_topdown_inplace",
+    "reachable_mask",
+]
+
+
+# -------------------- comparators --------------------
+
+
+def cond_scalar(p: float, thr: float, op: str) -> bool:
+    """
+    Compare a single p-value against threshold.
+
+    Leaves often carry a sentinel (e.g. -1). We treat p < 0 as 'not applicable'.
+
+    op ∈ {'>=', '>', '<=', '<'}
+    """
+    if p < 0:
+        return False
+    if op == ">=":
+        return p >= thr
+    if op == ">":
+        return p > thr
+    if op == "<=":
+        return p <= thr
+    if op == "<":
+        return p < thr
+    raise ValueError("prune_if must be one of '>=', '>', '<=', '<'")
+
+
+def cond_vec(p: np.ndarray, thr: float, op: str) -> np.ndarray:
+    """
+    Vectorized comparator for p-values; shape-preserving boolean mask.
+    """
+    if op == ">=":
+        return p >= thr
+    if op == ">":
+        return p > thr
+    if op == "<=":
+        return p <= thr
+    if op == "<":
+        return p < thr
+    raise ValueError("prune_if must be one of '>=', '>', '<=', '<'")
+
+
+# -------------------- pruning primitives --------------------
+
+
+def prune_subtree_inplace(tree: DecisionTreeRegressor, root_id: int) -> None:
+    """
+    Mark `root_id` and all its descendants as leaves in-place.
+
+    Notes
+    -----
+    - Does NOT recompute node predictions/values; keeps the stored means.
+    - For regression trees in sklearn, setting both children to TREE_LEAF makes a node a leaf.
+    """
+    T = tree.tree_
+    stack = [root_id]
+    while stack:
+        nid = stack.pop()
+        L, R = T.children_left[nid], T.children_right[nid]
+        if L != _tree.TREE_LEAF:
+            stack.extend([L, R])
+        T.children_left[nid] = _tree.TREE_LEAF
+        T.children_right[nid] = _tree.TREE_LEAF
+        # (optional clean-up)
+        # T.feature[nid] = _tree.TREE_UNDEFINED
+        # T.threshold[nid] = -2.0
+
+
+def prune_topdown_inplace(
+    tree: DecisionTreeRegressor,
+    pvals: np.ndarray,
+    *,
+    threshold: float,
+    prune_if: str = ">=",
+) -> None:
+    """
+    Depth-first top-down pruning using node p-values.
+
+    At node k:
+      if cond_scalar(pvals[k], threshold, prune_if) is True -> prune entire subtree at k.
+
+    Parameters
+    ----------
+    tree : fitted DecisionTreeRegressor
+    pvals : ndarray, per-node p-values; leaves can be marked with a negative sentinel (e.g. -1)
+    threshold : float
+    prune_if : str, one of {'>=', '>', '<=', '<'}
+    """
+    T = tree.tree_
+
+    def _dfs(node_id: int) -> None:
+        L, R = T.children_left[node_id], T.children_right[node_id]
+        if L == _tree.TREE_LEAF:
+            return
+        if cond_scalar(float(pvals[node_id]), threshold, prune_if):
+            prune_subtree_inplace(tree, node_id)
+            return
+        _dfs(L)
+        _dfs(R)
+
+    _dfs(0)
+
+
+# -------------------- diagnostics --------------------
+
+
+def reachable_mask(tree: DecisionTreeRegressor) -> np.ndarray:
+    """
+    Boolean mask over nodes indicating reachability from the root
+    after any in-place pruning (i.e., following child pointers).
+    """
+    T = tree.tree_
+    reach = np.zeros(T.node_count, dtype=bool)
+    stack = [0]
+    reach[0] = True
+    while stack:
+        nid = stack.pop()
+        L, R = T.children_left[nid], T.children_right[nid]
+        if L == _tree.TREE_LEAF:
+            continue
+        reach[L] = True
+        reach[R] = True
+        stack.extend([L, R])
+    return reach
+
+
+
+================================================
+FILE: src/utils/stats/__init__.py
+================================================
+[Empty file]
+
+
+================================================
+FILE: src/utils/stats/pvalues.py
+================================================
+import numpy as np
+from math import log, sqrt
+from scipy.stats import norm
+
+from sklearn.tree import _tree, DecisionTreeRegressor
+
+
+def Psi(n: int, u: float, d: int) -> float:
+    """
+    Your p-value mapping (with gentle guards):
+
+        K = sqrt(u) - (2 log log n)^(-1/2) * (log log log n + log 2)
+        p = d * (1 - Phi(K)^(2 log(n/2)))
+
+    Guards:
+    - If n <= 16 or u <= 0, return 1.0 (conservative large p).
+    - Clamp Phi(K) to (0,1) to avoid 0^exp / 1^exp issues.
+    - Clip p to [0,1].
+    """
+    if n <= 16 or u <= 0:
+        return 1.0
+
+    ll = log(log(n))  # log log n
+    lll = log(ll)  # log log log n
+    denom = sqrt(2.0 * ll)  # (2 log log n)^(1/2)
+    K = sqrt(u) - (lll + log(2.0)) / denom
+
+    pow_exp = 2.0 * log(n / 2.0)
+    phiK = min(max(norm.cdf(K), 1e-12), 1 - 1e-12)
+
+    p = d * (1.0 - (phiK**pow_exp))
+    return float(min(max(p, 0.0), 1.0))
+
+
+# -------------------- YD statistic & p-values --------------------
+
+
+def get_YD_statistics(cart: DecisionTreeRegressor) -> np.ndarray:
+    T = cart.tree_
+    node_count = T.node_count
+    YD_statistics = np.full(node_count, -1.0, dtype=float)
+
+    children_left = T.children_left
+    children_right = T.children_right
+    impurities = T.impurity
+    sample_size = T.n_node_samples
+
+    for k in range(node_count):
+        if children_left[k] == _tree.TREE_LEAF:
+            continue
+        n = sample_size[k]
+        nL = sample_size[children_left[k]]
+        nR = sample_size[children_right[k]]
+
+        S = n * impurities[k]
+        SL = nL * impurities[children_left[k]]
+        SR = nR * impurities[children_right[k]]
+
+        YD_statistics[k] = 0.0 if S <= 0.0 else (S - SL - SR) / (S / n)
+
+    return YD_statistics
+
+
+def get_p_values(cart: DecisionTreeRegressor, d: int) -> np.ndarray:
+    YD = get_YD_statistics(cart)
+    n_node = cart.tree_.n_node_samples
+    pvals = np.full_like(YD, -1.0, dtype=float)
+    for k, yd in enumerate(YD):
+        if yd != -1.0:
+            pvals[k] = Psi(int(n_node[k]), float(yd), int(d))
+    return pvals
+
+
+def get_cum_p_val(tree: DecisionTreeRegressor, d: int) -> float:
+    """
+    Return the cumulative p-value of a tree = sum of all node p-values.
+
+    Parameters
+    ----------
+    tree : DecisionTreeRegressor
+        A fitted regression tree.
+    d : int
+        Number of features (passed to get_p_values).
+
+    Returns
+    -------
+    float
+        Sum of all valid p-values (ignores sentinel -1 entries).
+    """
+    p_vals = get_p_values(tree, d)
+    mask = p_vals != -1
+    return float(np.sum(p_vals[mask]))
+
+

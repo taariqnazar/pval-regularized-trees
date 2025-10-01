@@ -121,11 +121,13 @@ class CCPPTree:
         for a in alphas[1:]:
             curr = self._fit_with_alpha(X, y, a)
             p = get_cum_p_val(curr, d)
-            self._path_.append((float(a), float(p)))
 
             # stop: return previous tree once p-value becomes non-significant
             if p > self.significance_level:
                 break
+
+            self._path_.append((float(a), float(p)))
+
             best = curr
             best_alpha = float(a)
             best_p = float(p)

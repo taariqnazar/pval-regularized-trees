@@ -16,7 +16,10 @@ src/models/ccp_ptree_boosting.py
 src/models/gbm.py
 src/models/recursive_ptree.py
 src/models/recursive_ptree_boosting.py
-src/numerical_illustrations/single_tree.py
+src/numerical_illustrations/figure1_table1.py
+src/numerical_illustrations/figure2.py
+src/numerical_illustrations/figure4_figure5.py
+src/numerical_illustrations/boosting/generate_results_table.py
 src/numerical_illustrations/boosting/run_variants.py
 src/utils/__init__.py
 src/utils/metrics.py
