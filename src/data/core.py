@@ -34,4 +34,3 @@ def load_dataset(name: str, /, **kwargs: Any) -> Tuple[np.ndarray, np.ndarray]:
         raise KeyError(f"Unknown dataset '{name}'. Known: {
                        available_datasets()}")
     return _DATASETS[name](**kwargs)
-

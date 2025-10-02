@@ -13,6 +13,8 @@ from .core import load_dataset, available_datasets, register_dataset
 from .california_housing import load_california
 from .bemtpl16 import load_bemtpl16
 from .synthetic import generate_linear_data, generate_neufeldt_data
+from .swemotorcycle import load_swemotorscycle
+# from .freMTPL2freq import load_freMTPL2freq
 
 __all__ = [
     "load_dataset",

@@ -9,13 +9,14 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 
 from data import load_dataset
-from models import GBM, CCPPTreeBoosting, RecursivePTreeBoosting
+from models import GBM, CCPPTreeBoosting, RecursivePTreeBoosting, CCPPTree
 from utils.metrics import rmse
 
 MODEL_REGISTRY = {
     "GBM": GBM,
     "CCPPTreeBoosting": CCPPTreeBoosting,
     "RecursivePTreeBoosting": RecursivePTreeBoosting,
+    "CCPPTree": CCPPTree,
 }
 
 
@@ -85,11 +86,13 @@ def _evaluate(model, Xtr, ytr, Xte, yte):
             if staged_complexity is not None and best_iter < len(staged_complexity):
                 best_complexity = int(staged_complexity[best_iter])
 
+            best_iter += 1  # convert to 1-based index
+
     out.update(
         {
             "staged_rmse": staged_rmse,
             "staged_complexity": staged_complexity,
-            "best_iter": best_iter + 1,
+            "best_iter": best_iter,
             "best_rmse": best_rmse,
             "best_complexity": best_complexity,
         }
@@ -101,6 +104,7 @@ def _evaluate(model, Xtr, ytr, Xte, yte):
 def run(cfg_path: str, outdir: str | Path = "src/numerical_illustrations/outputs"):
     cfg = _load_cfg(cfg_path)
     seed = int(cfg.get("random_seed", 0))
+    np.random.seed(seed)
 
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
