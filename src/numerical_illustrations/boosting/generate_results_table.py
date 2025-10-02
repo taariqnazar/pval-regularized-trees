@@ -19,6 +19,7 @@ for ds_name, ds_results in results["datasets"].items():
                 "best_iter": metrics.get("best_iter"),
                 "best_rmse": metrics.get("best_rmse"),
                 "best_complexity": metrics.get("best_complexity"),
+                "n_leaves": metrics.get("n_leaves_"),
             }
         )
 
@@ -36,6 +37,7 @@ for ds in df["dataset"].unique():
                 "n_estimators",
                 "best_iter",
                 "best_rmse",
+                "n_leaves",
                 # "best_complexity",
             ]
         ]

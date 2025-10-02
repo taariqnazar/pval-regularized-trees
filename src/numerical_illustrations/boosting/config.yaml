@@ -1,42 +1,52 @@
 random_seed: 42
 
-# We'll run all variants on each of these datasets
 datasets:
-  - swemotorcycle
-  - bemtpl16
   - california_housing
+  #- bemtpl16
 
 models:
+  Intercept:
+    variants:
+      intercept:
+
   GBM:
     variants:
       gbm:
-        learning_rate: 1
-        max_depth: 25 
+        learning_rate: 0.1
+        max_depth: 3
         min_samples_leaf: 20
-        k_folds: 5           # set to 1 to disable CV
-        max_estimators: 1 
-
-      constant_model:
-        learning_rate: 1
-        #max_depth: None, 
-        min_samples_leaf: 20
-        k_folds: 1           # set to 1 to disable CV
-        max_estimators: 1 
+        k_folds: 5
+        max_estimators: 2500 
 
   CCPPTree:
     variants:
       p_10:
-        significance_level: 0.1
+        significance_level: 0.10
         min_samples_leaf: 20
-        max_depth: 15 
+        max_depth: 15
       p_05:
         significance_level: 0.05
         min_samples_leaf: 20
-        max_depth: 15 
+        max_depth: 15
       p_01:
         significance_level: 0.01
         min_samples_leaf: 20
-        max_depth: 15 
+        max_depth: 15
+
+  DoubleRegression:
+    variants:
+      gbm_ccp05:
+        ordering_regressor_params:
+          learning_rate: 0.1
+          max_depth: 3
+          min_samples_leaf: 20
+          k_folds: 5
+          max_estimators: 2500 
+        prediction_regressor_params:
+          significance_level: 0.05
+          min_samples_leaf: 20
+          max_depth: 15
+
 
   #CCPPTreeBoosting:
   #  variants:

@@ -9,15 +9,8 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 
 from data import load_dataset
-from models import GBM, CCPPTreeBoosting, RecursivePTreeBoosting, CCPPTree
 from utils.metrics import rmse
-
-MODEL_REGISTRY = {
-    "GBM": GBM,
-    "CCPPTreeBoosting": CCPPTreeBoosting,
-    "RecursivePTreeBoosting": RecursivePTreeBoosting,
-    "CCPPTree": CCPPTree,
-}
+from models import MODEL_REGISTRY
 
 
 def _load_cfg(path: str | Path) -> Dict[str, Any]:
@@ -40,7 +33,7 @@ def _build_models(models_cfg: Dict[str, Any]) -> Dict[str, Any]:
             raise ValueError(f"No variants provided for '{model_type}'.")
         for var_name, params in variants.items():
             # copy to avoid mutating cfg
-            p = dict(params)
+            p = dict(params) if params else {}
             key = f"{model_type}/{var_name}"
             built[key] = Model(**p)
     return built
@@ -61,6 +54,7 @@ def _evaluate(model, Xtr, ytr, Xte, yte):
     staged_rmse = None
     staged_complexity = None
     best_iter = None
+
     best_rmse = None
     best_complexity = None
 
@@ -88,6 +82,10 @@ def _evaluate(model, Xtr, ytr, Xte, yte):
 
             best_iter += 1  # convert to 1-based index
 
+    n_leaves_ = None
+    if hasattr(model, "n_leaves_"):
+        n_leaves_ = int(getattr(model, "n_leaves_"))
+
     out.update(
         {
             "staged_rmse": staged_rmse,
@@ -95,6 +93,7 @@ def _evaluate(model, Xtr, ytr, Xte, yte):
             "best_iter": best_iter,
             "best_rmse": best_rmse,
             "best_complexity": best_complexity,
+            "n_leaves_": n_leaves_,
         }
     )
 
