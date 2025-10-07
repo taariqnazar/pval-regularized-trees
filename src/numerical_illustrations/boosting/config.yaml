@@ -2,7 +2,7 @@ random_seed: 42
 
 datasets:
   - california_housing
-  #- bemtpl16
+  - bemtpl16
 
 models:
   Intercept:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import pickle
 from pathlib import Path
 import json
 from typing import Any, Dict, List
@@ -110,6 +111,7 @@ def run(cfg_path: str, outdir: str | Path = "src/numerical_illustrations/outputs
 
     all_results: Dict[str, Any] = {"config": cfg, "datasets": {}}
 
+    model_dict = {}
     for ds_name in cfg["datasets"]:
         print(f"=== Dataset: {ds_name} ===")
         X, y = load_dataset(ds_name)
@@ -125,10 +127,16 @@ def run(cfg_path: str, outdir: str | Path = "src/numerical_illustrations/outputs
 
         all_results["datasets"][ds_name] = ds_results
 
+        model_dict[ds_name] = models
+
     outpath = outdir / "run_variants.json"
     with open(outpath, "w") as f:
         json.dump(all_results, f, indent=2)
     print(f"Saved results → {outpath}")
+
+    with open(outdir / "run_variants_models.pkl", "wb") as f:
+        pickle.dump(model_dict, f)
+    print(f"Saved models → {outdir / 'run_variants_models.pkl'}")
 
 
 if __name__ == "__main__":
