@@ -1,9 +1,11 @@
+from matplotlib.ticker import MaxNLocator, PercentFormatter
 from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeRegressor
 from collections import Counter
 from dataclasses import dataclass
 from typing import List, Tuple
+from sklearn.model_selection import GridSearchCV  # <-- NEW
 
 import numpy as np
 from sklearn.metrics import mean_squared_error
@@ -27,6 +29,7 @@ class TreeParams:
 class CVParams:
     k_folds: int = 5
     n_iterations: int = 500  # how many CV runs (different fold shuffles)
+    scoring: str = "rmse"  # "rmse" or "mse"  <-- NEW
 
 
 # ------------------------------ Core logic ------------------------------
@@ -105,6 +108,73 @@ def pick_alpha_via_kfold(
     return float(np.mean(best_alphas))
 
 
+# -------------------- NEW: GridSearchCV-based alpha picker --------------------
+
+
+def pick_alpha_via_gridsearchcv(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    k_folds: int,
+    tree_params: TreeParams,
+    seed: int = 0,
+    scoring: str = "rmse",  # "rmse" or "mse"
+):
+    """
+    Choose ccp_alpha via GridSearchCV over the cost-complexity path.
+    Returns (best_alpha, gridsearch_object).
+    """
+    # Build alpha grid from the full training data (fast + standard for DT pruning)
+    base = train_regression_tree(
+        X_train,
+        y_train,
+        max_depth=tree_params.max_depth,
+        min_samples_split=tree_params.min_samples_split,
+        ccp_alpha=0.0,
+        random_state=tree_params.random_state,
+    )
+    ccp_path = base.cost_complexity_pruning_path(X_train, y_train).ccp_alphas
+    alphas = np.unique(ccp_path)
+
+    # Drop the largest alpha which often collapses to root-only stump
+    if alphas.size > 1:
+        alphas = alphas[:-1]
+    if alphas.size == 0:
+        # Very rare backstop
+        alphas = np.logspace(-6, 0, 30)
+
+    # Scorer (built-in strings; avoids custom scorer plumbing)
+    if scoring.lower() == "rmse":
+        scorer = "neg_root_mean_squared_error"
+    elif scoring.lower() == "mse":
+        scorer = "neg_mean_squared_error"
+    else:
+        raise ValueError("scoring must be 'rmse' or 'mse'")
+
+    kf = KFold(n_splits=k_folds, shuffle=True, random_state=seed)
+
+    # Estimator with structural params fixed; tune only ccp_alpha
+    est = DecisionTreeRegressor(
+        criterion="squared_error",
+        max_depth=tree_params.max_depth,
+        min_samples_split=tree_params.min_samples_split,
+        random_state=tree_params.random_state,
+    )
+
+    gs = GridSearchCV(
+        estimator=est,
+        param_grid={"ccp_alpha": alphas},
+        scoring=scorer,
+        cv=kf,
+        n_jobs=-1,
+        refit=True,  # keep best estimator trained on full data
+        return_train_score=False,
+    )
+    gs.fit(X_train, y_train)
+
+    best_alpha = float(gs.best_params_["ccp_alpha"])
+    return best_alpha, gs
+
+
 def _one_iteration(
     i: int,
     X_train: np.ndarray,
@@ -112,9 +182,14 @@ def _one_iteration(
     cv_params,
     tree_params,
 ) -> Tuple[int, float, DecisionTreeRegressor]:
-    # Pick alpha (consider making this function accept n_jobs too; see section 2)
-    alpha = pick_alpha_via_kfold(
-        X_train, y_train, cv_params.k_folds, tree_params, seed=i
+    # Choose alpha via GridSearchCV (RMSE or MSE based on cv_params.scoring)
+    alpha, _ = pick_alpha_via_gridsearchcv(
+        X_train,
+        y_train,
+        cv_params.k_folds,
+        tree_params,
+        seed=i,
+        scoring=cv_params.scoring,  # <-- uses "rmse" or "mse"
     )
 
     # Train final tree (optionally vary random_state per iteration to increase diversity)
@@ -206,42 +281,39 @@ def make_frequency_table(leaves: List[int]) -> List[Tuple[int, int, float]]:
 
 
 def plot_leaf_histogram(table, output_path="leaf_frequencies.pdf"):
-    """
-    Plot histogram of leaf frequencies from the frequency table.
+    # table: (n_leaves, count, share). Rebuild a dense series.
+    if not table:
+        print("No data to plot.")
+        return
 
-    Parameters
-    ----------
-    table : list of tuples
-        Each element is (n_leaves, count, share)
-    output_path : str
-        File path to save the resulting PDF.
-    """
-    # unpack
-    n_leaves = [row[0] for row in table]
-    shares = [row[2] * 100 for row in table]  # convert to percentages
+    xs_present = [row[0] for row in table]
+    counts_present = {row[0]: row[1] for row in table}
 
-    # create figure
-    plt.figure(figsize=(9, 5))
-    plt.bar(
-        n_leaves,
-        shares,
-        width=0.8,
-        color="#4472C4",
-        edgecolor="black",
-        linewidth=0.5,
-    )
+    xmin, xmax = min(xs_present), max(xs_present)
+    xs = list(range(xmin, xmax + 1))
+    counts = [counts_present.get(x, 0) for x in xs]
+    total = sum(counts) if sum(counts) > 0 else 1
+    shares = [c / total * 100 for c in counts]
 
-    # labels and ticks
-    # plt.xlabel("Number of leaves", fontsize=12)
-    # plt.ylabel("Frequency (%)", fontsize=12)
-    # plt.xticks(n_leaves)  # show every second tick
-    plt.yticks([0, 5, 10, 15], [f"{t}%" for t in [0, 5, 10, 15]])
-    plt.grid(axis="y", linestyle="--", alpha=0.4)
+    fig, ax = plt.subplots(figsize=(10, 5), dpi=150)
+    ax.bar(xs, shares, width=0.8, edgecolor="black", linewidth=0.6)
 
-    # make layout tight and save as PDF
-    plt.tight_layout()
-    plt.savefig(output_path, bbox_inches="tight")
-    plt.close()
+    ax.yaxis.set_major_formatter(PercentFormatter(xmax=100))
+    ymax = max(shares) if shares else 1.0
+    ax.set_ylim(0, ymax * 1.15)
+
+    ax.set_xlim(xmin - 0.5, xmax + 0.5)
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+    ax.grid(axis="y", linestyle="--", alpha=0.4)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    #ax.set_xlabel("Number of leaves")
+    #ax.set_ylabel("Frequency")
+
+    fig.tight_layout()
+    fig.savefig(output_path, bbox_inches="tight")
+    plt.close(fig)
     print(f"Saved histogram to {output_path}")
 
 
@@ -267,9 +339,11 @@ def main():
     )
 
     tree_params = TreeParams(max_depth=8, min_samples_split=20, random_state=0)
-    cv_params = CVParams(k_folds=5, n_iterations=500)
+    cv_params = CVParams(
+        k_folds=5, n_iterations=500, scoring="rmse"
+    )  # <-- pick "rmse" or "mse"
 
-    ### CV BASED METHOD ###
+    ### CV BASED METHOD (now uses GridSearchCV inside) ###
     cv_trees = cv_based_trees(X_train, y_train, cv_params, tree_params)
     leaves = collect_leaf_counts(cv_trees)
     rmses = trees_rmse(cv_trees, X_test, y_test)
