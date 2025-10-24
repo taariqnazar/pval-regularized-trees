@@ -252,10 +252,10 @@ def pval_based_trees(
         )
         final_tree.fit(X_train, y_train)
         trees.append(final_tree)
-        print(
-            f"\rIteration {i + 1}/{len(deltas)}",
-            end="",
-        )
+        # print(
+        #    f"\rIteration {i + 1}/{len(deltas)}",
+        #    end="",
+        # )
 
     return trees
 
@@ -308,8 +308,8 @@ def plot_leaf_histogram(table, output_path="leaf_frequencies.pdf"):
     ax.grid(axis="y", linestyle="--", alpha=0.4)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    #ax.set_xlabel("Number of leaves")
-    #ax.set_ylabel("Frequency")
+    # ax.set_xlabel("Number of leaves")
+    # ax.set_ylabel("Frequency")
 
     fig.tight_layout()
     fig.savefig(output_path, bbox_inches="tight")
@@ -329,18 +329,21 @@ def trees_rmse(trees: List[DecisionTreeRegressor | CCPPTree], X, y) -> List[floa
 
 
 def main():
-    np.random.seed(42)
+    seed = 1 
+    np.random.seed(seed)
+    n_iterations = 500
 
     # Generate simple linear data (use your existing helper)
     X, y, beta = load_dataset("linear_model", n=500,
-                              sigma=1, p=6, random_state=42)
+                              sigma=1, p=6, random_state=seed)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=1
     )
+    print(beta)
 
     tree_params = TreeParams(max_depth=8, min_samples_split=20, random_state=0)
     cv_params = CVParams(
-        k_folds=5, n_iterations=500, scoring="rmse"
+        k_folds=5, n_iterations=n_iterations, scoring="rmse"
     )  # <-- pick "rmse" or "mse"
 
     ### CV BASED METHOD (now uses GridSearchCV inside) ###
