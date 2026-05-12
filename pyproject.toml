@@ -1,27 +1,33 @@
 [project]
-name = "covariance-penalties"
-version = "0.1.0"
-description = "Add your description here"
+name = "pval-regularized-trees"
+version = "0.2.0"
+description = "Reproducibility code for Engler, Lindholm, Lindskog, Nazar — Regularisation of regression trees by summation of p-values"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
-    "numpy",
-    "pandas",
-    "scipy",
-    "scikit-learn",
-    "matplotlib",
-    "seaborn",
-    "jupyterlab>=4.3.3",
-    "dtreeviz>=2.2.2",
-    "graphviz>=0.20.3",
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "scipy>=1.11",
+    "scikit-learn>=1.3",
+    "matplotlib>=3.7",
+    "seaborn>=0.13",
+    "pyyaml>=6.0",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
-    "gitingest>=0.3.1",
-    "ruff>=0.8.2",
+    "pytest>=7.4",
+    "ruff>=0.5",
 ]
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["trees*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

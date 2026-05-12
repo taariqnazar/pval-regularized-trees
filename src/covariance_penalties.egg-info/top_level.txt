@@ -1,4 +1,0 @@
-data
-models
-numerical_illustrations
-utils

@@ -1,252 +1,75 @@
-# Regularisation of CART Trees by Summation of *p*-values — Code
+# pval-regularized-trees
 
-Reproducible code for the experiments in the paper:
+Reproducibility code for:
 
-> Engler, Lindholm, Lindskog, Nazar — *Regularisation of CART trees by summation of p-values*. arXiv:2505.18769  
-> https://arxiv.org/abs/2505.18769
+> Engler, Lindholm, Lindskog, Nazar. *Regularisation of regression trees by summation of p-values.* arXiv:2505.18769.
 
-This repository contains:
-- Dataset loaders/generators (`src/data`)
-- Tree models and boosting wrappers (`src/models`)
-- Numerical illustrations and figure scripts (`src/numerical_illustrations`)
-- Utility code for pruning, metrics, and *p*-values (`src/utils`)
-
----
+Each script under `experiments/` reproduces exactly one (sub)section of the paper. Outputs land in `results/<same-stem>/`.
 
 ## Quick start
 
 ```bash
-# clone and enter the code directory
-git clone <your-repo-url>
-cd <repo>/code
-
-# (recommended) create and activate a virtual env
-python3 -m venv .venv
-source ./.venv/bin/activate  # Windows: .\.venv\Scripts\activate
-
-# install dependencies
-pip install -U pip
-# Option A: add src/ to Python path (simple & robust)
-export PYTHONPATH=$PWD/src     # Windows PowerShell: $env:PYTHONPATH="$PWD/src"
-# Option B (if your setuptools packaging is wired up): editable install
-pip install -e .               # if this fails to expose packages, use Option A
+git clone https://github.com/taariqnazar/pval-regularized-trees
+cd pval-regularized-trees
+python -m venv .venv && source .venv/bin/activate
+make install
+make all          # regenerates every figure and table from Section 4
+make test         # smoke test: runs each experiment with --quick and checks outputs exist
 ```
 
-> **Packaging note:** The project uses a `src/` layout but no explicit package discovery config in `pyproject.toml`. If `pip install -e .` doesn’t expose imports like `from data import ...`, set `PYTHONPATH=$PWD/src` before running scripts.
+## What reproduces what
 
----
+| Paper section | Script | Outputs |
+|---|---|---|
+| 4.1 — *p*-value approximation for a single split | `experiments/exp_4_1_pvalue_approximation.py` | `figure1.pdf`, `figure2.pdf`, `table1.csv` |
+| 4.2 — Simulated examples from Neufeldt et al. | `experiments/exp_4_2_neufeldt_pruning.py` | `figure3.pdf`, `figure4.pdf`, `figure5.pdf`, `figure6.pdf` |
+| 4.2.1 — Comparison to Cappelli et al. | `experiments/exp_4_2_1_cappelli_comparison.py` | `table2.csv`, `figure7.pdf` |
+| 4.2.2 — Randomness via cross-validation | `experiments/exp_4_2_2_cv_randomness.py` | `figure8.pdf`, `table3.csv` |
+| 4.3 — Real-data comparison | `experiments/exp_4_3_real_data.py` | `table4.csv`, `table5.csv`, `raw.csv` |
+| 4.4 — Auto-calibrated predictor | *(out of scope; not in this repo)* | — |
 
-## Requirements
+Each script accepts `--seed`, `--out-dir`, and `--quick` (small Monte Carlo for smoke testing). Run any script with `--help` to see its options.
 
-- Python ≥ 3.8
-- Python packages (see `pyproject.toml`):  
-  `numpy, pandas, scipy, scikit-learn, matplotlib, seaborn, jupyterlab, dtreeviz, graphviz`
+## Library API
 
----
+```python
+from trees.data import load_dataset, available_datasets
+from trees.models import PSumTree, CappelliSTP, CCPCV, GSellStop
+from trees.stats import Psi, get_p_values, build_ccp_chain
 
-## Repository layout
-
-```
-code/
-├── pyproject.toml
-└── src/
-    ├── data/
-    │   ├── __init__.py
-    │   ├── bemtpl16.py
-    │   ├── california_housing.py
-    │   ├── core.py
-    │   └── synthetic.py
-    ├── models/
-    │   ├── __init__.py
-    │   ├── ccp_ptree.py
-    │   ├── ccp_ptree_boosting.py
-    │   ├── gbm.py
-    │   ├── recursive_ptree.py
-    │   └── recursive_ptree_boosting.py
-    ├── numerical_illustrations/
-    │   ├── figure1_table1.py
-    │   ├── figure2.py
-    │   ├── figure4_figure5.py
-    │   └── boosting/
-    │       ├── generate_results_table.py
-    │       └── run_variants.py
-    └── utils/
-        ├── __init__.py
-        ├── metrics.py
-        ├── protocols.py
-        ├── prune.py
-        └── stats/
-            ├── __init__.py
-            └── pvalues.py
+X, y = load_dataset("boston_housing")
+m = PSumTree(significance_level=0.05, max_depth=6, min_samples_leaf=20)
+m.fit(X, y, random_state=0)
+y_hat = m.predict(X)
 ```
 
----
+Available models:
+
+| Class | Section | Notes |
+|---|---|---|
+| `PSumTree` | 4.* | Cumulative Ψ-sum stopping along the CCP path. *Paper's main method.* |
+| `CCPCV` | 4.2.2, 4.3 | sklearn CCP path + 1-SE CV-rule baseline. |
+| `CappelliSTP` | 4.2.1, 4.3 | F-test pruning on a 70/30 grow/prune split. |
+| `GSellStop` | — | ForwardStop / StrongStop, two sequence strategies. *Exploratory; not in revised paper.* |
+| `RecursivePSumTree` | — | v1 recursive top-down node-wise pruning. *Kept for v1 reproducibility.* |
+| `PSumBoosting`, `RecursivePSumBoosting`, `GBM`, `Intercept`, `DoubleRegression` | — | Boosting wrappers / baselines. |
 
 ## Datasets
 
-### Built-in loaders / generators
+- `boston_housing` — 506 × 13, MEDV. CSV ships with the repo (StatLib snapshot, ref [21]).
+- `box_lunch` — 226 × 16, kcal24h0. CSV ships with the repo (R `visTree::blsdata`).
+- `california_housing` — 20640 × 8, MedHouseVal. Fetched via sklearn; cached CSV included.
+- `linear_model` (synthetic) — Gaussian linear, used by Section 4.2.2.
+- `neufeldt` (synthetic) — Eq. (19), used by Section 4.2 / 4.2.1.
+- `bemtpl16` — v1 dataset, manual download required (not used by any current experiment).
 
-Unified API:
+## Legacy v1 experiments (not in revised paper)
 
-```python
-from data import load_dataset, available_datasets
+`experiments/legacy/` holds v1 boosting-variant scripts that don't map to a section of the revised manuscript. Run via `make legacy`.
 
-print(available_datasets())
-# ['bemtpl16', 'california_housing', 'linear_model', 'neufeldt']
+## Reproducibility notes
 
-X, y = load_dataset("california_housing")                   # sklearn fetch
-X, y = load_dataset("bemtpl16", csv_path="src/data/raw/BEMTPL16.csv")  # CSV
-X, y, beta = load_dataset("linear_model", n=200, p=10)      # synthetic
-X, y = load_dataset("neufeldt", a=1.0, b=0.5)               # synthetic
-```
-
-**BEMTPL16 CSV:** download the dataset and place it at `src/data/raw/BEMTPL16.csv`, or pass a custom path via `csv_path=...`.
-
----
-
-## Models
-
-Import aliases:
-
-```python
-from models import CCPPTree, RecursivePTree
-from models import CCPPTreeBoosting, RecursivePTreeBoosting, GBM
-```
-
-### Standalone trees
-
-```python
-from data import load_dataset
-from models import CCPPTree, RecursivePTree
-
-X, y = load_dataset("linear_model", n=500, p=10)
-
-# Cost-complexity path + cumulative p-value rule
-tree = CCPPTree(significance_level=0.05, max_depth=6, min_samples_leaf=10)
-tree.fit(X, y, random_state=0)
-yhat = tree.predict(X)
-
-# Recursive top-down pruning by node p-values
-rtree = RecursivePTree(threshold=0.05, prune_if=">=", max_depth=6, min_samples_leaf=10)
-rtree.fit(X, y, random_state=0)
-yhat2 = rtree.predict(X)
-```
-
-### Boosting wrappers
-
-```python
-from models import CCPPTreeBoosting, RecursivePTreeBoosting
-
-X, y = load_dataset("linear_model", n=1000, p=10)
-
-ensemble = CCPPTreeBoosting(learning_rate=0.1, max_estimators=200,
-                            significance_level=0.05, max_depth=2, min_samples_leaf=20)
-ensemble.fit(X, y, random_state=0)
-pred = ensemble.predict(X)
-```
-
-`GBM` is a thin wrapper around `sklearn.ensemble.GradientBoostingRegressor` with optional CV-based early stopping (`k_folds>=2`).
-
----
-
-## Reproducing figures / experiments
-
-> Make sure `PYTHONPATH=$PWD/src` (or that an editable install works). Run commands from `code/`.
-
-### Figure 1 + Table 1
-
-Monte Carlo for empirical vs approximated quantiles of the YD statistic.
-
-```bash
-python src/numerical_illustrations/figure1_table1.py
-# Outputs:
-# - Figure1.pdf
-# - Table values printed to stdout
-```
-
-### Figure 2
-
-Detection rate vs sample size for independent/dependent covariates.
-
-```bash
-python src/numerical_illustrations/figure2.py
-# Outputs:
-# - Figure2.pdf
-```
-
-### Figures 4 & 5
-
-Neufeld regression tree experiment with cumulative *p*-value pruning along the CCP path.
-
-```bash
-python src/numerical_illustrations/figure4_figure5.py
-# Displays two figures sequentially
-```
-
-### Boosting experiments
-
-Config-driven runs across datasets and model variants; results saved to JSON.
-
-1) Create a config file at `src/numerical_illustrations/boosting/config.yaml` (example below).  
-2) Run experiments and then print result tables.
-
-```bash
-python src/numerical_illustrations/boosting/run_variants.py
-python src/numerical_illustrations/boosting/generate_results_table.py
-# Outputs:
-# - src/numerical_illustrations/outputs/run_variants.json
-# - Tables printed to stdout
-```
-
-**Example `config.yaml`:**
-
-```yaml
-random_seed: 0
-
-datasets:
-  - california_housing
-  - linear_model
-
-models:
-  GBM:
-    variants:
-      default:
-        k_folds: 1
-        max_estimators: 300
-        learning_rate: 0.1
-        max_depth: 2
-
-  CCPPTreeBoosting:
-    variants:
-      sl05_depth2:
-        learning_rate: 0.1
-        max_estimators: 300
-        significance_level: 0.05
-        max_depth: 2
-        min_samples_leaf: 20
-
-  RecursivePTreeBoosting:
-    variants:
-      thr05_depth2:
-        learning_rate: 0.1
-        max_estimators: 300
-        threshold: 0.05
-        prune_if: ">="
-        max_depth: 2
-        min_samples_leaf: 20
-```
-
----
-
-## Tips & troubleshooting
-
-- **Long Monte Carlo runs**: Scripts like `figure1_table1.py`/`figure2.py` use large `M` by default. Reduce it when testing.
-- **Graphviz issues**: Ensure the system Graphviz is installed and on `PATH` if `dtreeviz` is used.
-- **Import errors**: Prefer `export PYTHONPATH=$PWD/src` when in doubt.
-
----
-
-## Reference
-
-For details on the methodology and experimental design, see the paper:  
-https://arxiv.org/abs/2505.18769
+- All randomness is seeded; default seeds match the paper's Monte Carlo settings.
+- Pinned floors in `pyproject.toml`: `numpy>=1.24`, `scipy>=1.11`, `scikit-learn>=1.3`.
+- No R, no rpy2: the repo is pure Python.
+- Reproducibility target: *qualitative* (figures and tables look the same, conclusions hold). Bit-exact match across NumPy/SciPy versions is not guaranteed.
