@@ -17,6 +17,17 @@ def test_psum_tree_fits_and_predicts():
     assert pred.shape == y.shape
 
 
+def test_cappelli_stp_fits_and_predicts():
+    from trees.models import CappelliSTP
+    X, y = _data()
+    m = CappelliSTP(significance_level=0.05, train_frac=0.7,
+                    min_samples_leaf=10, max_depth=4)
+    m.fit(X, y, random_state=0)
+    pred = m.predict(X)
+    assert pred.shape == y.shape
+    assert m.n_leaves_ >= 1
+
+
 def test_recursive_psum_tree_fits_and_predicts():
     X, y = _data()
     m = RecursivePSumTree(threshold=0.05, prune_if=">=", max_depth=4, min_samples_leaf=10)

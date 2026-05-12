@@ -17,7 +17,7 @@ from .gbm import GBM
 from .intercept import Intercept
 from .double_regression import DoubleRegression
 # Added in later tasks:
-# from .cappelli import CappelliSTP        # Task 6
+from .cappelli import CappelliSTP
 # from .gsell import GSellStop             # Task 7
 # from .ccp_cv import CCPCV                # Task 8
 
@@ -29,6 +29,7 @@ __all__ = [
     "GBM",
     "Intercept",
     "DoubleRegression",
+    "CappelliSTP",
 ]
 
 MODEL_REGISTRY = {
@@ -39,4 +40,5 @@ MODEL_REGISTRY = {
     "GBM": GBM,
     "Intercept": Intercept,
     "DoubleRegression": DoubleRegression,
+    "CappelliSTP": CappelliSTP,
 }
