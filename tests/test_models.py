@@ -46,6 +46,16 @@ def test_gsell_strong_wl_fits_and_predicts():
     assert m.predict(X).shape == y.shape
 
 
+def test_ccp_cv_fits_and_predicts():
+    from trees.models import CCPCV
+    X, y = _data()
+    m = CCPCV(min_samples_leaf=10, n_folds=5)
+    m.fit(X, y, random_state=0)
+    pred = m.predict(X)
+    assert pred.shape == y.shape
+    assert m.ccp_alpha_ >= 0.0
+
+
 def test_recursive_psum_tree_fits_and_predicts():
     X, y = _data()
     m = RecursivePSumTree(threshold=0.05, prune_if=">=", max_depth=4, min_samples_leaf=10)

@@ -19,7 +19,7 @@ from .double_regression import DoubleRegression
 # Added in later tasks:
 from .cappelli import CappelliSTP
 from .gsell import GSellStop
-# from .ccp_cv import CCPCV                # Task 8
+from .ccp_cv import CCPCV
 
 __all__ = [
     "PSumTree",
@@ -31,6 +31,7 @@ __all__ = [
     "DoubleRegression",
     "CappelliSTP",
     "GSellStop",
+    "CCPCV",
 ]
 
 MODEL_REGISTRY = {
@@ -43,4 +44,5 @@ MODEL_REGISTRY = {
     "DoubleRegression": DoubleRegression,
     "CappelliSTP": CappelliSTP,
     "GSellStop": GSellStop,
+    "CCPCV": CCPCV,
 }
