@@ -41,7 +41,10 @@ def plot_tree_with_pvalues(
     if node_pvalues is None and cumulative_pvalues is None:
         return ax
 
+    n_nodes = cart.tree_.node_count
     for node_id, ann in enumerate(annotations):
+        if node_id >= n_nodes:
+            break
         text = ann.get_text()
         rows = [text]
         if node_pvalues is not None and node_pvalues[node_id] >= 0:
