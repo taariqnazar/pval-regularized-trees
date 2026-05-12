@@ -40,6 +40,12 @@ def test_exp_4_2_2_runs_quick():
         assert (out / f).exists(), f
 
 
+def test_exp_4_2_1_runs_quick():
+    out = _run("exp_4_2_1_cappelli_comparison")
+    for f in ("table2.csv", "figure7.pdf", "figure7_raw.csv"):
+        assert (out / f).exists(), f
+
+
 def test_exp_4_3_runs_quick():
     out = _run("exp_4_3_real_data")
     for f in ("table4.csv", "table5.csv", "raw.csv"):
