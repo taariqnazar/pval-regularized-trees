@@ -38,3 +38,9 @@ def test_exp_4_2_2_runs_quick():
     out = _run("exp_4_2_2_cv_randomness")
     for f in ("figure8.pdf", "table3.csv"):
         assert (out / f).exists(), f
+
+
+def test_exp_4_3_runs_quick():
+    out = _run("exp_4_3_real_data")
+    for f in ("table4.csv", "table5.csv", "raw.csv"):
+        assert (out / f).exists(), f
