@@ -18,7 +18,7 @@ from .intercept import Intercept
 from .double_regression import DoubleRegression
 # Added in later tasks:
 from .cappelli import CappelliSTP
-# from .gsell import GSellStop             # Task 7
+from .gsell import GSellStop
 # from .ccp_cv import CCPCV                # Task 8
 
 __all__ = [
@@ -30,6 +30,7 @@ __all__ = [
     "Intercept",
     "DoubleRegression",
     "CappelliSTP",
+    "GSellStop",
 ]
 
 MODEL_REGISTRY = {
@@ -41,4 +42,5 @@ MODEL_REGISTRY = {
     "Intercept": Intercept,
     "DoubleRegression": DoubleRegression,
     "CappelliSTP": CappelliSTP,
+    "GSellStop": GSellStop,
 }

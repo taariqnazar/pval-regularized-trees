@@ -14,6 +14,7 @@ from .prune import (
     reachable_mask,
 )
 from .metrics import mse, rmse
+from .ccp import build_ccp_chain
 
 __all__ = [
     "Psi",
@@ -27,4 +28,5 @@ __all__ = [
     "reachable_mask",
     "mse",
     "rmse",
+    "build_ccp_chain",
 ]

@@ -28,6 +28,24 @@ def test_cappelli_stp_fits_and_predicts():
     assert m.n_leaves_ >= 1
 
 
+def test_gsell_forward_sum_fits_and_predicts():
+    from trees.models import GSellStop
+    X, y = _data()
+    m = GSellStop(significance_level=0.05, rule="forward", strategy="sum",
+                  min_samples_leaf=10)
+    m.fit(X, y, random_state=0)
+    assert m.predict(X).shape == y.shape
+
+
+def test_gsell_strong_wl_fits_and_predicts():
+    from trees.models import GSellStop
+    X, y = _data()
+    m = GSellStop(significance_level=0.05, rule="strong", strategy="wl",
+                  min_samples_leaf=10)
+    m.fit(X, y, random_state=0)
+    assert m.predict(X).shape == y.shape
+
+
 def test_recursive_psum_tree_fits_and_predicts():
     X, y = _data()
     m = RecursivePSumTree(threshold=0.05, prune_if=">=", max_depth=4, min_samples_leaf=10)
