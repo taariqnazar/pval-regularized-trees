@@ -3,18 +3,18 @@ from __future__ import annotations
 from typing import Optional, Dict, Any, List
 import numpy as np
 
-from models.ccp_ptree import CCPPTree
+from .psum import PSumTree
 
 
-class CCPPTreeBoosting:
+class PSumBoosting:
     """
-    Gradient boosting (squared loss) using CCPPTree as base learners.
+    Gradient boosting (squared loss) using PSumTree as base learners.
 
     The boosting procedure:
     - Start with F_0(x) = 0 (no prediction).
     - At each stage t:
         1. Compute residuals r = y - F_{t-1}(x).
-        2. Fit a CCPPTree to r.
+        2. Fit a PSumTree to r.
         3. Update F_t(x) = F_{t-1}(x) + learning_rate * tree_t(x).
     - Stop early if a tree degenerates to a single leaf.
 
@@ -25,12 +25,12 @@ class CCPPTreeBoosting:
     max_estimators : int, default=500
         Maximum number of boosting stages (trees).
     **base_params : Any
-        Additional keyword arguments forwarded to CCPPTree,
+        Additional keyword arguments forwarded to PSumTree,
         e.g. significance_level, max_depth, min_samples_leaf, etc.
 
     Attributes (after fitting)
     --------------------------
-    estimators_ : List[CCPPTree]
+    estimators_ : List[PSumTree]
         The sequence of fitted base learners.
     n_estimators_ : int
         Actual number of stages fitted (<= max_estimators).
@@ -54,13 +54,13 @@ class CCPPTreeBoosting:
         self.base_params: Dict[str, Any] = dict(base_params)
 
         # Learned after fitting
-        self.estimators_: List[CCPPTree] = []
+        self.estimators_: List[PSumTree] = []
         self.n_estimators_: int = 0
         self.train_mse_: List[float] = []
 
     def fit(self, X, y, *, random_state: int = 0):
         """
-        Fit a boosting ensemble of CCPPTree learners.
+        Fit a boosting ensemble of PSumTree learners.
 
         Inputs
         ------
@@ -69,11 +69,11 @@ class CCPPTreeBoosting:
         y : array-like of shape (n_samples,)
             Training targets.
         random_state : int, default=0
-            Random seed forwarded to each CCPPTree for reproducibility.
+            Random seed forwarded to each PSumTree for reproducibility.
 
         Returns
         -------
-        self : CCPPTreeBoosting
+        self : PSumBoosting
             The fitted boosting model.
         """
         X = np.asarray(X)
@@ -90,7 +90,7 @@ class CCPPTreeBoosting:
             r = y - F
 
             # base learner
-            base = CCPPTree(**self.base_params)
+            base = PSumTree(**self.base_params)
             base.fit(X, r, random_state=random_state)
 
             self.estimators_.append(base)
@@ -124,7 +124,7 @@ class CCPPTreeBoosting:
         """
         if not self.estimators_:
             raise RuntimeError(
-                "CCPPTreeBoosting is not fitted. Call .fit() first.")
+                "PSumBoosting is not fitted. Call .fit() first.")
         X = np.asarray(X)
         T = (
             self.n_estimators_
@@ -144,7 +144,7 @@ class CCPPTreeBoosting:
         """
         if not self.estimators_:
             raise RuntimeError(
-                "CCPPTreeBoosting is not fitted. Call .fit() first.")
+                "PSumBoosting is not fitted. Call .fit() first.")
         X = np.asarray(X)
         F = np.zeros(X.shape[0], dtype=float)
         for base in self.estimators_:
@@ -157,7 +157,7 @@ class CCPPTreeBoosting:
         """
         if not self.estimators_:
             raise RuntimeError(
-                "CCPPTreeBoosting is not fitted. Call .fit() first.")
+                "PSumBoosting is not fitted. Call .fit() first.")
         return [int(est.model.tree_.n_leaves) for est in self.estimators_]
 
     # ----- sklearn-style helpers -----
@@ -187,4 +187,4 @@ class CCPPTreeBoosting:
             ]
             + [f"{k}={v!r}" for k, v in self.base_params.items()]
         )
-        return f"CCPPTreeBoosting({inner})"
+        return f"PSumBoosting({inner})"

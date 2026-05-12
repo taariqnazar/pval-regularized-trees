@@ -3,12 +3,12 @@ from __future__ import annotations
 from typing import Optional, Dict, Any, List
 import numpy as np
 
-from models.recursive_ptree import RecursivePTree
+from .recursive_psum import RecursivePSumTree
 
 
-class RecursivePTreeBoosting:
+class RecursivePSumBoosting:
     """
-    Gradient boosting (squared loss) using RecursivePTree as base learners.
+    Gradient boosting (squared loss) using RecursivePSumTree as base learners.
 
     Parameters (constructor)
     ------------------------
@@ -17,12 +17,12 @@ class RecursivePTreeBoosting:
     max_estimators : int, default=500
         Maximum number of boosting stages.
     **base_params : Any
-        Additional keyword arguments passed to RecursivePTree,
+        Additional keyword arguments passed to RecursivePSumTree,
         e.g. threshold, prune_if, max_depth, min_samples_leaf, etc.
 
     Attributes (after fit)
     ----------------------
-    estimators_ : List[RecursivePTree]
+    estimators_ : List[RecursivePSumTree]
         Sequence of fitted base learners.
     n_estimators_ : int
         Number of stages actually fitted (<= max_estimators).
@@ -46,13 +46,13 @@ class RecursivePTreeBoosting:
         self.base_params: Dict[str, Any] = dict(base_params)
 
         # Learned after fitting
-        self.estimators_: List[RecursivePTree] = []
+        self.estimators_: List[RecursivePSumTree] = []
         self.n_estimators_: int = 0
         self.train_mse_: List[float] = []
 
     def fit(self, X, y, *, random_state: int = 0):
         """
-        Fit a boosting ensemble of RecursivePTree learners.
+        Fit a boosting ensemble of RecursivePSumTree learners.
 
         Inputs
         ------
@@ -66,7 +66,7 @@ class RecursivePTreeBoosting:
 
         Returns
         -------
-        self : RecursivePTreeBoosting
+        self : RecursivePSumBoosting
             The fitted boosting model.
         """
         X = np.asarray(X)
@@ -82,8 +82,8 @@ class RecursivePTreeBoosting:
             # residuals (gradient for squared loss)
             r = y - F
 
-            # fit a RecursivePTree to residuals
-            base = RecursivePTree(**self.base_params)
+            # fit a RecursivePSumTree to residuals
+            base = RecursivePSumTree(**self.base_params)
             base.fit(X, r, random_state=random_state + t)
 
             self.estimators_.append(base)
@@ -117,7 +117,7 @@ class RecursivePTreeBoosting:
         """
         if not self.estimators_:
             raise RuntimeError(
-                "RecursivePTreeBoosting is not fitted. Call .fit() first."
+                "RecursivePSumBoosting is not fitted. Call .fit() first."
             )
         X = np.asarray(X)
         T = (
@@ -138,7 +138,7 @@ class RecursivePTreeBoosting:
         """
         if not self.estimators_:
             raise RuntimeError(
-                "RecursivePTreeBoosting is not fitted. Call .fit() first."
+                "RecursivePSumBoosting is not fitted. Call .fit() first."
             )
         X = np.asarray(X)
         F = np.zeros(X.shape[0], dtype=float)
@@ -152,7 +152,7 @@ class RecursivePTreeBoosting:
         """
         if not self.estimators_:
             raise RuntimeError(
-                "RecursivePTreeBoosting is not fitted. Call .fit() first."
+                "RecursivePSumBoosting is not fitted. Call .fit() first."
             )
         return [int(est.model.tree_.n_leaves) for est in self.estimators_]
 
@@ -183,4 +183,4 @@ class RecursivePTreeBoosting:
             ]
             + [f"{k}={v!r}" for k, v in self.base_params.items()]
         )
-        return f"RecursivePTreeBoosting({inner})"
+        return f"RecursivePSumBoosting({inner})"

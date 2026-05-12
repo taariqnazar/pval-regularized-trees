@@ -1,8 +1,8 @@
 from __future__ import annotations
 import numpy as np
 
-from models.gbm import GBM
-from models.ccp_ptree import CCPPTree
+from .gbm import GBM
+from .psum import PSumTree
 
 
 class DoubleRegression:
@@ -10,14 +10,14 @@ class DoubleRegression:
     Simple two-stage regressor.
 
     Stage 1: fit GBM on (X, y)
-    Stage 2: fit CCPPTree on pseudo-covariate = GBM.predict(X).reshape(-1, 1)
+    Stage 2: fit PSumTree on pseudo-covariate = GBM.predict(X).reshape(-1, 1)
 
     Parameters
     ----------
     ordering_regressor_params : dict
         Keyword args for GBM(...)
     prediction_regressor_params : dict
-        Keyword args for CCPPTree(...)
+        Keyword args for PSumTree(...)
     """
 
     def __init__(
@@ -31,7 +31,7 @@ class DoubleRegression:
 
         # Will be created at init so __repr__ looks nice; re-fit on .fit
         self.ordering_regressor_ = GBM(**self.ordering_regressor_params)
-        self.prediction_regressor_ = CCPPTree(
+        self.prediction_regressor_ = PSumTree(
             **self.prediction_regressor_params)
 
         self.n_leaves_ = None
@@ -42,7 +42,7 @@ class DoubleRegression:
 
         # (re)initialize in case params changed
         self.ordering_regressor_ = GBM(**self.ordering_regressor_params)
-        self.prediction_regressor_ = CCPPTree(
+        self.prediction_regressor_ = PSumTree(
             **self.prediction_regressor_params)
 
         # Stage 1
@@ -80,7 +80,7 @@ class DoubleRegression:
             )
         # Rebuild inner estimators so __repr__ is accurate after set_params
         self.ordering_regressor_ = GBM(**self.ordering_regressor_params)
-        self.prediction_regressor_ = CCPPTree(
+        self.prediction_regressor_ = PSumTree(
             **self.prediction_regressor_params)
         return self
 

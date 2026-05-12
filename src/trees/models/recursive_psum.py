@@ -3,11 +3,11 @@ from typing import Optional, Dict, Any
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor, _tree
 
-from utils.stats.pvalues import get_p_values
-from utils.prune import cond_scalar
+from trees.stats.pvalues import get_p_values
+from trees.stats.prune import cond_scalar
 
 
-class RecursivePTree:
+class RecursivePSumTree:
     """
     A regression tree (CART) pruned using recursive hypothesis testing.
 
@@ -71,7 +71,7 @@ class RecursivePTree:
 
         Returns
         -------
-        self : RecursivePTree
+        self : RecursivePSumTree
             The fitted/pruned model.
         """
         # Ensure determinism if user didn’t provide random_state
@@ -109,7 +109,7 @@ class RecursivePTree:
         """
         if self.model is None:
             raise RuntimeError(
-                "RecursivePTree is not fitted. Call .fit() first.")
+                "RecursivePSumTree is not fitted. Call .fit() first.")
         return self.model.predict(X)
 
     # --------- internal pruning ---------
@@ -184,7 +184,7 @@ class RecursivePTree:
             ]
             + [f"{k}={v!r}" for k, v in self.tree_params.items()]
         )
-        return f"RecursivePTree({inner})"
+        return f"RecursivePSumTree({inner})"
 
 
 def count_leaves(est):

@@ -4,10 +4,10 @@ from typing import Optional, Dict, Any, List, Tuple
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor
 
-from utils.stats.pvalues import get_cum_p_val
+from trees.stats.pvalues import get_cum_p_val
 
 
-class CCPPTree:
+class PSumTree:
     """
     Cost-complexity-pruned regression tree where pruning is selected by a
     cumulative p-value rule along the CCP path.
@@ -83,7 +83,7 @@ class CCPPTree:
 
         Returns
         -------
-        self : CCPPTree
+        self : PSumTree
             The fitted/pruned model.
         """
         # Ensure determinism if user didn’t provide random_state
@@ -153,7 +153,7 @@ class CCPPTree:
             Predicted values from the fitted/pruned tree.
         """
         if self.model is None:
-            raise RuntimeError("CCPPTree is not fitted. Call .fit() first.")
+            raise RuntimeError("PSumTree is not fitted. Call .fit() first.")
         return self.model.predict(X)
 
     # ----- convenience -----
@@ -162,11 +162,11 @@ class CCPPTree:
         """
         Return leaf counts for staged learners.
 
-        Since CCPPTree is a single tree (not boosting), this just returns
+        Since PSumTree is a single tree (not boosting), this just returns
         a list with one entry: [n_leaves_].
         """
         if self.model is None:
-            raise RuntimeError("CCPPTree is not fitted. Call .fit() first.")
+            raise RuntimeError("PSumTree is not fitted. Call .fit() first.")
         return [int(self.model.tree_.n_leaves)]
 
     def path_diagnostics(self) -> List[Tuple[float, float]]:
@@ -196,4 +196,4 @@ class CCPPTree:
             [f"significance_level={self.significance_level}"]
             + [f"{k}={v!r}" for k, v in self.tree_params.items()]
         )
-        return f"CCPPTree({inner})"
+        return f"PSumTree({inner})"
